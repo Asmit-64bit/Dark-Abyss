@@ -82,8 +82,8 @@ interface GameState {
   setActivePuzzle: (id: number | null) => void;
   dynamicPuzzles: Record<number, Puzzle>;
   setDynamicPuzzle: (id: number, puzzle: Puzzle) => void;
-  puzzleSources: Record<number, 'gemini' | 'curated'>;
-  setPuzzleSource: (id: number, source: 'gemini' | 'curated') => void;
+  puzzleSources: Record<number, 'groq' | 'ai' | 'gemini' | 'curated'>;
+  setPuzzleSource: (id: number, source: 'groq' | 'ai' | 'gemini' | 'curated') => void;
   isGeneratingPuzzle: boolean;
   setIsGeneratingPuzzle: (val: boolean) => void;
   escaped: boolean;

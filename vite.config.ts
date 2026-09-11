@@ -18,22 +18,42 @@ const PUZZLE_SLOTS: Record<number, { level: number; objectName: string; reward: 
   14: { level: 5, objectName: 'Final Gateway Extraction Portal', reward: 'Escape', topic: 'Zero-Knowledge Proofs / Cryptographic Key Exchange / Consensus Protocols', difficulty: 'Expert', domain: 'Advanced Cryptography', tags: ['zero-knowledge', 'zk-snark', 'cryptography', 'protocols', 'sector-5'] },
 };
 
-function geminiDevPlugin(env: Record<string, string>): Plugin {
+function groqDevPlugin(env: Record<string, string>): Plugin {
   return {
-    name: 'gemini-dev-api',
+    name: 'groq-dev-api',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         // GET /api/ai/pool-status
         if (req.method === 'GET' && req.url === '/api/ai/pool-status') {
           try {
-            const { getGeminiPoolStatus } = await import('./server/geminiKeyPool.js');
-            const status = getGeminiPoolStatus(env);
+            const { getGroqPoolStatus } = await import('./server/groqKeyPool.js');
+            const status = getGroqPoolStatus(env);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify(status));
           } catch (e: any) {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify({ error: e?.message || 'Pool status error' }));
           }
+        }
+
+        // POST /api/ai/knowledge
+        if (req.method === 'POST' && req.url === '/api/ai/knowledge') {
+          let body = '';
+          req.on('data', (c) => (body += c));
+          req.on('end', async () => {
+            try {
+              const data = body ? JSON.parse(body) : {};
+              const domain = data.domain || '';
+              const { DOMAIN_KNOWLEDGE_BASES } = await import('./src/data/knowledgeBases.ts');
+              const text = DOMAIN_KNOWLEDGE_BASES[domain] || `DOSSIER NOT FOUND FOR DOMAIN: ${domain}`;
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ text }));
+            } catch (e: any) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ error: e?.message || 'Knowledge fetch error' }));
+            }
+          });
+          return;
         }
 
         if (req.method === 'POST' && req.url === '/api/ai/puzzle') {
@@ -43,88 +63,130 @@ function geminiDevPlugin(env: Record<string, string>): Plugin {
             try {
               const data = body ? JSON.parse(body) : {};
               const puzzleId = Number(data.puzzleId) || 1;
-              const clientKey = req.headers['x-goog-api-key'] || data.customApiKey;
+              const clientKey =
+                req.headers['x-groq-api-key'] ||
+                req.headers['x-goog-api-key'] ||
+                (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : null) ||
+                data.customApiKey;
 
               const context = PUZZLE_SLOTS[puzzleId] || PUZZLE_SLOTS[1];
               const domain = data.domain || context.domain || 'General Programming';
               const difficulty = data.difficulty || context.difficulty || 'Beginner';
-              const knowledgeBase = data.knowledgeBase || '';
 
-              const systemInstruction = `You are the corrupted sentient core of a paranormal facility called "Schrodinger's Abyss".
-You generate coding / cybersecurity escape room puzzles.`;
+              const { getDomainSlotInfo } = await import('./src/data/domainTopics.ts');
+              const { DOMAIN_KNOWLEDGE_BASES } = await import('./src/data/knowledgeBases.ts');
 
-              const userPrompt = `Generate puzzle for:
-Sector: ${context.level}
-Terminal Name: "${context.objectName}"
-Domain Focus: ${domain}
+              const domainInfo = getDomainSlotInfo(domain, puzzleId);
+              const targetTopic = data.topic || domainInfo.topic;
+              const targetTags = domainInfo.tags.join(', ');
+              const knowledgeBase = data.knowledgeBase || DOMAIN_KNOWLEDGE_BASES[domain] || '';
+
+              const systemInstruction = `You are the corrupted sentient core of a paranormal facility called "Abyss".
+Your directive is to generate an escape room puzzle specifically focused on the curriculum domain: "${domain}".
+
+CRITICAL DOMAIN DIRECTIVE:
+- You MUST generate a puzzle, code snippet, question, and answer that STRICTLY and EXCLUSIVELY test concepts from "${domain}", focusing on the target topic: "${targetTopic}".
+- DO NOT generate generic cybersecurity, regex, or buffer overflow puzzles unless the domain is "Cybersecurity & Cryptography".
+- Ground your puzzle in the concepts provided in the DOMAIN KNOWLEDGE BASE.
+- You MUST respond with ONLY a valid, parseable JSON object adhering strictly to the schema. No surrounding markdown backticks, no code fences.`;
+
+              const userPrompt = `Generate an escape room puzzle testing knowledge in the domain: "${domain}".
+
+Sector: Sector ${context.level}
+Anomaly Terminal: "${context.objectName}"
+Target Domain: "${domain}"
+Target Topic: "${targetTopic}"
+Tags: ${targetTags}
 Difficulty Level: ${difficulty}
-Expected Reward on Solve: "${context.reward}"`;
+Expected Reward on Solve: "${context.reward}"
 
-              const { executeGeminiWithRotation } = await import('./server/geminiKeyPool.js');
+DOMAIN KNOWLEDGE BASE REFERENCE:
+"""
+${knowledgeBase}
+"""
 
-              const jsonResult: any = await executeGeminiWithRotation(
+STRICT REQUIREMENTS:
+1. "title": Atmospheric eerie title relating directly to ${domain} (e.g. for DevOps: "The Broken Dockerfile // Layer 01", for React: "The Phantom Hook // Render 04", for DSA: "The Infinite Tree // Traversal 02").
+2. "scenario": 1-2 sentence atmospheric horror lore description framing this terminal's subsystem malfunction in terms of ${domain}.
+3. "question": A precise technical question testing the player's knowledge of ${targetTopic}. The question MUST test genuine knowledge of ${domain}. Player should fix a bug, identify a missing syntax token/keyword, specify a command/hook, or correct a faulty configuration.
+4. "codeSnippet": A short, clean code or config snippet in a language appropriate for ${domain} (e.g. Dockerfile / K8s YAML for DevOps, React JSX/TS for Frontend, Python for Backend, algorithm / data structure for DSA). The snippet MUST contain the bug, anomaly, or placeholder (or empty string if purely conceptual).
+5. "answer": Array of 2-8 acceptable string variations of the correct answer (case-insensitive, including shorthand, punctuation variations, commands, or tokens).
+6. "hint": A subtle, in-character cryptic clue that nudges toward the answer without giving it away, directly relevant to ${domain}.
+7. "explanation": 1-sentence technical explanation of why the solution works in ${domain}.
+8. "nextClue": A short, cryptic lore line pointing toward the next anomaly.
+
+JSON SCHEMA:
+{
+  "title": string,
+  "scenario": string,
+  "question": string,
+  "codeSnippet": string,
+  "answer": string[],
+  "hint": string,
+  "explanation": string,
+  "nextClue": string
+}`;
+
+              const { executeGroqWithRotation } = await import('./server/groqKeyPool.js');
+
+              const jsonResult: any = await executeGroqWithRotation(
                 async (apiKey) => {
                   const models = [
-                    env.VITE_GEMINI_MODEL || 'gemini-3.6-flash',
-                    'gemini-3.6-flash',
-                    'gemini-3.5-flash',
-                    'gemini-2.5-flash',
-                  ];
+                    env.GROQ_MODEL,
+                    'openai/gpt-oss-120b',
+                    'groq/compound',
+                    'qwen/qwen3.8-27b',
+                    'openai/gpt-oss-20b',
+                    'groq/compound-mini',
+                    'llama-3.3-70b-versatile',
+                    'llama-3.1-8b-instant',
+                  ].filter(Boolean) as string[];
 
                   let lastErr = null;
                   for (const m of models) {
                     try {
-                      const gRes = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
+                      const groqRes = await fetch(
+                        'https://api.groq.com/openai/v1/chat/completions',
                         {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': String(apiKey) },
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`,
+                          },
                           body: JSON.stringify({
-                            systemInstruction: { parts: [{ text: systemInstruction }] },
-                            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-                            generationConfig: { 
-                              responseMimeType: 'application/json', 
-                              temperature: 0.7,
-                              responseSchema: {
-                                type: "OBJECT",
-                                properties: {
-                                  title: { type: "STRING" },
-                                  scenario: { type: "STRING" },
-                                  question: { type: "STRING" },
-                                  codeSnippet: { type: "STRING" },
-                                  answer: { type: "ARRAY", items: { type: "STRING" } },
-                                  hint: { type: "STRING" },
-                                  nextClue: { type: "STRING" }
-                                },
-                                required: ["title", "scenario", "question", "codeSnippet", "answer", "hint", "nextClue"]
-                              }
-                            },
+                            model: m,
+                            messages: [
+                              { role: 'system', content: systemInstruction },
+                              { role: 'user', content: userPrompt },
+                            ],
+                            response_format: { type: 'json_object' },
+                            temperature: 0.7,
                           }),
                         }
                       );
 
-                      if (!gRes.ok) {
-                        const errText = await gRes.text();
-                        console.error("Gemini API Error Response:", gRes.status, errText);
-                        const err: any = new Error(errText || `Gemini API HTTP ${gRes.status}`);
-                        err.status = gRes.status;
+                      if (!groqRes.ok) {
+                        const errText = await groqRes.text();
+                        console.error('Groq API Error Response:', groqRes.status, errText);
+                        const err: any = new Error(errText || `Groq API HTTP ${groqRes.status}`);
+                        err.status = groqRes.status;
                         throw err;
                       }
 
-                      const gData = await gRes.json();
-                      const raw = gData?.candidates?.[0]?.content?.parts?.[0]?.text;
+                      const gData = await groqRes.json();
+                      const raw = gData?.choices?.[0]?.message?.content;
                       if (raw) {
                         return JSON.parse(raw);
                       }
                     } catch (err: any) {
                       lastErr = err;
-                      if (err.status === 429 || err.status === 402 || err.status === 403) {
+                      if (err.status === 429 || err.status === 401 || err.status === 402 || err.status === 403) {
                         throw err; // Trigger key rotation
                       }
                     }
                   }
 
-                  throw lastErr || new Error('Gemini puzzle generation failed');
+                  throw lastErr || new Error('Groq puzzle generation failed');
                 },
                 clientKey,
                 env
@@ -137,7 +199,7 @@ Expected Reward on Solve: "${context.reward}"`;
                   {
                     question: jsonResult.question,
                     domain: domain,
-                    tags: context.tags,
+                    tags: domainInfo.tags,
                     difficulty: difficulty,
                     title: jsonResult.title,
                     scenario: jsonResult.scenario,
@@ -185,18 +247,26 @@ Expected Reward on Solve: "${context.reward}"`;
           req.on('end', async () => {
             try {
               const data = body ? JSON.parse(body) : {};
-              const { puzzle, userAnswer, solveTimeMs, currentDifficulty } = data;
-              const clientKey = req.headers['x-goog-api-key'] || data.customApiKey;
+              const question = data.question || data.puzzle?.question;
+              const codeSnippet = data.codeSnippet || data.puzzle?.codeSnippet || '';
+              const rawExpected = data.expectedAnswers || data.puzzle?.answer || [];
+              const expectedAnswers = Array.isArray(rawExpected) ? rawExpected : [rawExpected];
+              const userAnswer = data.userAnswer || data.playerAnswer || '';
+              const solveTimeMs = data.solveTimeMs;
+              const currentDifficulty = data.currentDifficulty;
+              const clientKey =
+                req.headers['x-groq-api-key'] ||
+                req.headers['x-goog-api-key'] ||
+                (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : null) ||
+                data.customApiKey;
 
-              if (!userAnswer || !puzzle) {
+              if (!userAnswer || !question) {
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 return res.end(JSON.stringify({ error: 'Missing parameters' }));
               }
 
               const trimmed = String(userAnswer).trim().toLowerCase();
-              const isDirectMatch =
-                Array.isArray(puzzle.answer) &&
-                puzzle.answer.some((ans: string) => String(ans).trim().toLowerCase() === trimmed);
+              const isDirectMatch = expectedAnswers.some((ans: string) => String(ans).trim().toLowerCase() === trimmed);
 
               if (isDirectMatch) {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -204,64 +274,74 @@ Expected Reward on Solve: "${context.reward}"`;
               }
 
               const systemInstruction = `You are a strict but fair judge for a technical coding puzzle game.
-Determine if the player's submission is a valid, correct solution/answer to the question.`;
+Determine if the player's submission is a valid, correct solution/answer to the question.
+Format your output strictly as a JSON object:
+{
+  "isCorrect": boolean,
+  "feedback": string,
+  "nextDifficulty": string
+}`;
 
-              const userPrompt = `Question: "${puzzle.question}"
-Reference Code: "${puzzle.codeSnippet || 'None'}"
-Expected Reference Answers: ${JSON.stringify(puzzle.answer || [])}
+              const userPrompt = `Question: "${question}"
+Reference Code: "${codeSnippet || 'None'}"
+Expected Reference Answers: ${JSON.stringify(expectedAnswers)}
 Player's Submission: "${userAnswer}"
 ${solveTimeMs ? `The player solved this puzzle in ${Math.round(solveTimeMs / 1000)} seconds. Current Difficulty: ${currentDifficulty || 'Beginner'}. Based on this time (if they solved it very quickly under 30s, increase difficulty. If over 120s, decrease it. Otherwise keep it same).` : ''}`;
 
-              const { executeGeminiWithRotation } = await import('./server/geminiKeyPool.js');
+              const { executeGroqWithRotation } = await import('./server/groqKeyPool.js');
 
-              const evalRes: any = await executeGeminiWithRotation(
+              const evalRes: any = await executeGroqWithRotation(
                 async (apiKey) => {
-                  const models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+                  const models = [
+                    env.GROQ_MODEL,
+                    'openai/gpt-oss-120b',
+                    'groq/compound',
+                    'qwen/qwen3.8-27b',
+                    'openai/gpt-oss-20b',
+                    'groq/compound-mini',
+                    'llama-3.3-70b-versatile',
+                    'llama-3.1-8b-instant',
+                  ].filter(Boolean) as string[];
                   let lastErr = null;
 
                   for (const m of models) {
                     try {
-                      const gRes = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
+                      const groqRes = await fetch(
+                        'https://api.groq.com/openai/v1/chat/completions',
                         {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': String(apiKey) },
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`,
+                          },
                           body: JSON.stringify({
-                            systemInstruction: { parts: [{ text: systemInstruction }] },
-                            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-                            generationConfig: { 
-                              responseMimeType: 'application/json', 
-                              temperature: 0.1,
-                              responseSchema: {
-                                type: "OBJECT",
-                                properties: {
-                                  isCorrect: { type: "BOOLEAN" },
-                                  feedback: { type: "STRING" },
-                                  nextDifficulty: { type: "STRING" }
-                                },
-                                required: ["isCorrect", "feedback", "nextDifficulty"]
-                              }
-                            },
+                            model: m,
+                            messages: [
+                              { role: 'system', content: systemInstruction },
+                              { role: 'user', content: userPrompt },
+                            ],
+                            response_format: { type: 'json_object' },
+                            temperature: 0.1,
                           }),
                         }
                       );
 
-                      if (!gRes.ok) {
-                        const errText = await gRes.text();
-                        console.error("Gemini API Error Response:", gRes.status, errText);
-                        const err: any = new Error(errText || `Gemini API HTTP ${gRes.status}`);
-                        err.status = gRes.status;
+                      if (!groqRes.ok) {
+                        const errText = await groqRes.text();
+                        console.error('Groq Evaluation API Error Response:', groqRes.status, errText);
+                        const err: any = new Error(errText || `Groq API HTTP ${groqRes.status}`);
+                        err.status = groqRes.status;
                         throw err;
                       }
 
-                      const gData = await gRes.json();
-                      const raw = gData?.candidates?.[0]?.content?.parts?.[0]?.text;
+                      const gData = await groqRes.json();
+                      const raw = gData?.choices?.[0]?.message?.content;
                       if (raw) {
                         return JSON.parse(raw);
                       }
                     } catch (err: any) {
                       lastErr = err;
-                      if (err.status === 429 || err.status === 402 || err.status === 403) {
+                      if (err.status === 429 || err.status === 401 || err.status === 402 || err.status === 403) {
                         throw err; // Rotate key
                       }
                     }
@@ -299,7 +379,7 @@ ${solveTimeMs ? `The player solved this puzzle in ${Math.round(solveTimeMs / 100
             try {
               const { handleSignUp } = await import('./server/supabaseService.js');
               const data = body ? JSON.parse(body) : {};
-              const result = await handleSignUp(data.email, data.password, data.operatorName, env);
+              const result = await handleSignUp(data, env);
               res.writeHead(result.status, { 'Content-Type': 'application/json' });
               return res.end(JSON.stringify(result));
             } catch (e: any) {
@@ -318,7 +398,7 @@ ${solveTimeMs ? `The player solved this puzzle in ${Math.round(solveTimeMs / 100
             try {
               const { handleSignIn } = await import('./server/supabaseService.js');
               const data = body ? JSON.parse(body) : {};
-              const result = await handleSignIn(data.email, data.password, env);
+              const result = await handleSignIn(data, env);
               res.writeHead(result.status, { 'Content-Type': 'application/json' });
               return res.end(JSON.stringify(result));
             } catch (e: any) {
@@ -471,7 +551,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
-    plugins: [react(), geminiDevPlugin(env)],
+    plugins: [react(), groqDevPlugin(env)],
     server: {
       port: 5173,
       host: true,

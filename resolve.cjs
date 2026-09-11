@@ -90,7 +90,7 @@ code = code.replace(conflict2Pattern, jsonRotationRes);
 
 
 // Resolution for evaluate logic
-const conflict3Pattern = /<<<<<<< HEAD\n              const evalPrompt = \`You are a strict but fair judge for a technical coding puzzle game.[\s\S]*?>>>>>>> Gemini2/g;
+const conflict3Pattern = /<<<<<<< HEAD\n              const evalPrompt = `You are a strict but fair judge for a technical coding puzzle game.[\s\S]*?>>>>>>> Gemini2/g;
 
 const evalRes = `              const systemInstruction = \`You are a strict but fair judge for a technical coding puzzle game.
 Determine if the player's submission is a valid, correct solution/answer to the question.\`;

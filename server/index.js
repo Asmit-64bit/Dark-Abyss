@@ -15,9 +15,11 @@ import {
   getSupabaseAdmin,
 } from './supabaseService.js';
 import {
-  executeGeminiWithRotation,
-  getGeminiPoolStatus,
-} from './geminiKeyPool.js';
+  executeGroqWithRotation,
+  getGroqPoolStatus,
+} from './groqKeyPool.js';
+import { getDomainSlotInfo } from './domainTopics.js';
+import { DOMAIN_KNOWLEDGE_BASES } from './knowledgeBases.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,7 +47,7 @@ function loadEnv() {
 loadEnv();
 
 const PORT = process.env.PORT || 3001;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '';
+const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.VITE_GROQ_API_KEY || '';
 
 export const PUZZLE_SLOTS = {
   1: { level: 1, objectName: 'Laboratory Computer', reward: 'Gold Key', topic: 'Python or JavaScript Syntax / Basic Logic', difficulty: 'Easy', domain: 'Programming Fundamentals', tags: ['syntax', 'python', 'javascript', 'logic', 'sector-1'] },
@@ -69,7 +71,7 @@ function sendJson(res, statusCode, data) {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, x-goog-api-key, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, x-groq-api-key, x-goog-api-key, Authorization',
   });
   res.end(JSON.stringify(data));
 }
@@ -119,19 +121,19 @@ const server = http.createServer(async (req, res) => {
   // 1. Health Check
   if (url.pathname === '/api/health' && req.method === 'GET') {
     const supabaseAdmin = getSupabaseAdmin(process.env);
-    const poolStatus = getGeminiPoolStatus(process.env);
+    const poolStatus = getGroqPoolStatus(process.env);
     return sendJson(res, 200, {
       status: 'ok',
       service: "Abyss Backend API",
       aiConfigured: poolStatus.activeKeys > 0,
-      geminiPool: poolStatus,
+      groqPool: poolStatus,
       databaseConfigured: Boolean(supabaseAdmin),
     });
   }
 
-  // 1b. Gemini Key Pool Telemetry Status: GET /api/ai/pool-status
+  // 1b. Groq Key Pool Telemetry Status: GET /api/ai/pool-status
   if (url.pathname === '/api/ai/pool-status' && req.method === 'GET') {
-    const poolStatus = getGeminiPoolStatus(process.env);
+    const poolStatus = getGroqPoolStatus(process.env);
     return sendJson(res, 200, poolStatus);
   }
 
@@ -244,6 +246,18 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, result.status, result);
   }
 
+  // 9c. Domain Dossier Knowledge: POST /api/ai/knowledge
+  if (url.pathname === '/api/ai/knowledge' && req.method === 'POST') {
+    try {
+      const body = await parseBody(req);
+      const domain = body.domain || '';
+      const text = DOMAIN_KNOWLEDGE_BASES[domain] || `DOSSIER NOT FOUND FOR DOMAIN: ${domain}`;
+      return sendJson(res, 200, { text });
+    } catch (e) {
+      return sendJson(res, 500, { error: e.message || 'Knowledge fetch error' });
+    }
+  }
+
   // =========================================================================
   // AI PUZZLE GENERATION & EVALUATION ROUTES
   // =========================================================================
@@ -255,36 +269,56 @@ const server = http.createServer(async (req, res) => {
       const puzzleId = Number(body.puzzleId) || 1;
       const adaptiveDifficulty = body.difficulty;
       const customDomain = body.domain;
-      const clientKey = req.headers['x-goog-api-key'] || body.customApiKey;
+      const clientKey =
+        req.headers['x-groq-api-key'] ||
+        req.headers['x-goog-api-key'] ||
+        (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : null) ||
+        body.customApiKey;
 
       const context = PUZZLE_SLOTS[puzzleId] || PUZZLE_SLOTS[1];
       const finalDifficulty = adaptiveDifficulty || context.difficulty;
-      
-      const finalDomain = customDomain && customDomain !== 'General Programming' ? customDomain : context.domain;
-      const finalTopic = finalDomain === context.domain ? context.topic : "An appropriate advanced topic for this domain";
-      const finalTags = finalDomain === context.domain ? context.tags.join(', ') : finalDomain;
 
-      const prompt = `
-You are the corrupted sentient core of a paranormal facility called "Abyss".
-Generate a coding / cybersecurity escape room puzzle for Sector ${context.level} on the "${context.objectName}".
+      const domain = customDomain && customDomain !== 'General Programming' ? customDomain : context.domain;
+      const domainInfo = getDomainSlotInfo(domain, puzzleId);
+      const finalTopic = body.topic || domainInfo.topic;
+      const finalTags = domainInfo.tags.join(', ');
+      const knowledgeBase = body.knowledgeBase || DOMAIN_KNOWLEDGE_BASES[domain] || '';
 
-Domain: ${finalDomain}
+      const systemPrompt = `You are the corrupted sentient core of a paranormal facility called "Abyss".
+Your directive is to generate an escape room puzzle specifically focused on the curriculum domain: "${domain}".
+
+CRITICAL DOMAIN DIRECTIVE:
+- You MUST generate a puzzle, code snippet, question, and answer that STRICTLY and EXCLUSIVELY test concepts from "${domain}", focusing on the target topic: "${finalTopic}".
+- DO NOT generate generic cybersecurity, regex, or buffer overflow puzzles unless the domain is "Cybersecurity & Cryptography".
+- Ground your puzzle in the concepts provided in the DOMAIN KNOWLEDGE BASE.
+- You MUST respond with ONLY a valid, parseable JSON object adhering strictly to the schema. No surrounding markdown backticks, no code fences.`;
+
+      const prompt = `Generate an escape room puzzle testing knowledge in the domain: "${domain}".
+
+Sector: Sector ${context.level}
+Anomaly Terminal: "${context.objectName}"
+Target Domain: "${domain}"
+Target Topic: "${finalTopic}"
 Tags: ${finalTags}
-Topic: ${finalTopic}
-Difficulty: ${finalDifficulty}
+Difficulty Level: ${finalDifficulty}
 Expected Reward on Solve: "${context.reward}"
 
-Requirements:
-1. "title": Atmospheric eerie title (e.g. "The Void Pointer // Buffer 04", "Spectral Packet Sniffer")
-2. "scenario": 1-2 sentence atmospheric horror lore description about this specific terminal/device.
-3. "question": Clear, concise question asking the player to identify a missing token, fix a bug, specify an attack name, or provide a regex/code fix.
-4. "codeSnippet": A short, clean code snippet (in Python, JavaScript/TypeScript, SQL, or JSON) containing the bug or puzzle (or empty string if purely conceptual).
-5. "answer": Array of 2-8 acceptable string variations of the correct answer (case-insensitive, including shorthand, punctuation variations).
-6. "hint": A subtle, in-character cryptic clue that nudges toward the answer without giving it away, grounded in the same Domain/Topic above.
-7. "explanation": 1-sentence technical explanation of why the solution works.
-8. "nextClue": A short, cryptic in-character line of lore foreshadowing the next anomaly ahead — do not reveal the answer to anything, just atmosphere.
+DOMAIN KNOWLEDGE BASE REFERENCE:
+"""
+${knowledgeBase}
+"""
 
-Format your output strictly as a JSON object adhering to this schema:
+STRICT REQUIREMENTS:
+1. "title": Atmospheric eerie title relating directly to ${domain} (e.g. for DevOps: "The Broken Dockerfile // Layer 01", for React: "The Phantom Hook // Render 04", for DSA: "The Infinite Tree // Traversal 02").
+2. "scenario": 1-2 sentence atmospheric horror lore description framing this terminal's subsystem malfunction in terms of ${domain}.
+3. "question": A precise technical question testing the player's knowledge of ${finalTopic}. The question MUST test genuine knowledge of ${domain}. Player should fix a bug, identify a missing syntax token/keyword, specify a command/hook, or correct a faulty configuration.
+4. "codeSnippet": A short, clean code or config snippet in a language appropriate for ${domain} (e.g. Dockerfile / K8s YAML for DevOps, React JSX/TS for Frontend, Python for Backend, algorithm / data structure for DSA). The snippet MUST contain the bug, anomaly, or placeholder (or empty string if purely conceptual).
+5. "answer": Array of 2-8 acceptable string variations of the correct answer (case-insensitive, including shorthand, punctuation variations, commands, or tokens).
+6. "hint": A subtle, in-character cryptic clue that nudges toward the answer without giving it away, directly relevant to ${domain}.
+7. "explanation": 1-sentence technical explanation of why the solution works in ${domain}.
+8. "nextClue": A short, cryptic lore line pointing toward the next anomaly.
+
+JSON SCHEMA:
 {
   "title": string,
   "scenario": string,
@@ -297,55 +331,64 @@ Format your output strictly as a JSON object adhering to this schema:
 }
 `;
 
-      const jsonResult = await executeGeminiWithRotation(
+      const jsonResult = await executeGroqWithRotation(
         async (apiKey, _keyIndex) => {
           const models = [
-            process.env.VITE_GEMINI_MODEL || 'gemini-3.6-flash',
-            'gemini-3.6-flash',
-            'gemini-3.5-flash',
-            'gemini-2.5-flash',
-          ];
+            process.env.GROQ_MODEL,
+            'openai/gpt-oss-120b',
+            'groq/compound',
+            'qwen/qwen3.8-27b',
+            'openai/gpt-oss-20b',
+            'groq/compound-mini',
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+          ].filter(Boolean);
 
           let lastErr = null;
 
           for (const m of models) {
             try {
-              const geminiRes = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
+              const groqRes = await fetch(
+                'https://api.groq.com/openai/v1/chat/completions',
                 {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
-                    'x-goog-api-key': apiKey,
+                    'Authorization': `Bearer ${apiKey}`,
                   },
                   body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                    generationConfig: { responseMimeType: 'application/json', temperature: 0.7 },
+                    model: m,
+                    messages: [
+                      { role: 'system', content: systemPrompt },
+                      { role: 'user', content: prompt },
+                    ],
+                    response_format: { type: 'json_object' },
+                    temperature: 0.7,
                   }),
                 }
               );
 
-              if (!geminiRes.ok) {
-                const errText = await geminiRes.text();
-                const err = new Error(errText || `Gemini API HTTP ${geminiRes.status}`);
-                err.status = geminiRes.status;
+              if (!groqRes.ok) {
+                const errText = await groqRes.text();
+                const err = new Error(errText || `Groq API HTTP ${groqRes.status}`);
+                err.status = groqRes.status;
                 throw err;
               }
 
-              const data = await geminiRes.json();
-              const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+              const data = await groqRes.json();
+              const rawText = data?.choices?.[0]?.message?.content;
               if (rawText) {
                 return JSON.parse(rawText);
               }
             } catch (err) {
               lastErr = err;
-              if (err.status === 429 || err.status === 402 || err.status === 403) {
+              if (err.status === 429 || err.status === 401 || err.status === 402 || err.status === 403) {
                 throw err; // Trigger key rotation to next key in pool
               }
             }
           }
 
-          throw lastErr || new Error('Gemini API failed to generate valid puzzle JSON');
+          throw lastErr || new Error('Groq API failed to generate valid puzzle JSON');
         },
         clientKey,
         process.env
@@ -355,9 +398,9 @@ Format your output strictly as a JSON object adhering to this schema:
         id: puzzleId,
         level: context.level,
         sector_level: context.level,
-        domain: context.domain,
-        tags: context.tags,
-        difficulty: context.difficulty,
+        domain: domain,
+        tags: domainInfo.tags,
+        difficulty: finalDifficulty,
         objectName: context.objectName,
         reward: context.reward,
         title: jsonResult.title || `Sector 0${context.level} Terminal Bypass`,
@@ -400,62 +443,104 @@ Format your output strictly as a JSON object adhering to this schema:
   if (url.pathname === '/api/ai/evaluate' && req.method === 'POST') {
     try {
       const body = await parseBody(req);
-      const clientKey = req.headers['x-goog-api-key'] || body.customApiKey;
+      const clientKey =
+        req.headers['x-groq-api-key'] ||
+        req.headers['x-goog-api-key'] ||
+        (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : null) ||
+        body.customApiKey;
 
-      const { question, codeSnippet, expectedAnswers, playerAnswer } = body;
+      const question = body.question || body.puzzle?.question;
+      const codeSnippet = body.codeSnippet || body.puzzle?.codeSnippet || '';
+      const rawExpected = body.expectedAnswers || body.puzzle?.answer || [];
+      const expectedAnswers = Array.isArray(rawExpected) ? rawExpected : [rawExpected];
+      const playerAnswer = body.playerAnswer || body.userAnswer || '';
+      const solveTimeMs = body.solveTimeMs;
+      const currentDifficulty = body.currentDifficulty;
 
-      const evalPrompt = `
-You are the AI arbiter of an escape room. Evaluate if the player's answer is correct for the following puzzle.
+      if (!playerAnswer || !question) {
+        return sendJson(res, 400, { error: 'Missing parameters: question and answer required' });
+      }
+
+      // Fast path: direct exact match (case-insensitive)
+      const trimmed = String(playerAnswer).trim().toLowerCase();
+      const isDirectMatch = expectedAnswers.some((ans) => String(ans).trim().toLowerCase() === trimmed);
+      if (isDirectMatch) {
+        return sendJson(res, 200, {
+          isCorrect: true,
+          feedback: 'ACCESS GRANTED.',
+        });
+      }
+
+      const evalPrompt = `You are the AI arbiter of an escape room. Evaluate if the player's answer is correct for the following puzzle.
 Question: "${question}"
-Code: "${codeSnippet || ''}"
-Known Valid Answers: ${JSON.stringify(expectedAnswers || [])}
+Code: "${codeSnippet}"
+Known Valid Answers: ${JSON.stringify(expectedAnswers)}
 Player's Answer: "${playerAnswer}"
+${solveTimeMs ? `The player solved this puzzle in ${Math.round(solveTimeMs / 1000)} seconds. Current Difficulty: ${currentDifficulty || 'Beginner'}. Based on this time (if they solved it very quickly under 30s, increase difficulty. If over 120s, decrease it. Otherwise keep it same).` : ''}
 
 Is the player's answer semantically correct or equivalent?
 Output strictly a JSON object:
 {
   "isCorrect": boolean,
-  "feedback": "Short in-character 1-sentence explanation"
+  "feedback": "Short in-character 1-sentence explanation",
+  "nextDifficulty": "Beginner" | "Intermediate" | "Advanced" | "Expert"
 }
 `;
 
-      const evalResult = await executeGeminiWithRotation(
+      const evalResult = await executeGroqWithRotation(
         async (apiKey, _keyIndex) => {
-          const evalModels = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+          const evalModels = [
+            process.env.GROQ_MODEL,
+            'openai/gpt-oss-120b',
+            'groq/compound',
+            'qwen/qwen3.8-27b',
+            'openai/gpt-oss-20b',
+            'groq/compound-mini',
+            'llama-3.3-70b-versatile',
+            'llama-3.1-8b-instant',
+          ].filter(Boolean);
           let lastErr = null;
 
           for (const em of evalModels) {
             try {
-              const geminiRes = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${em}:generateContent`,
+              const groqRes = await fetch(
+                'https://api.groq.com/openai/v1/chat/completions',
                 {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
-                    'x-goog-api-key': apiKey,
+                    'Authorization': `Bearer ${apiKey}`,
                   },
                   body: JSON.stringify({
-                    contents: [{ role: 'user', parts: [{ text: evalPrompt }] }],
-                    generationConfig: { responseMimeType: 'application/json', temperature: 0.1 },
+                    model: em,
+                    messages: [
+                      {
+                        role: 'system',
+                        content: 'You are the AI arbiter of an escape room. Evaluate if the player answer is correct. Respond strictly with a JSON object: {"isCorrect": boolean, "feedback": string}.',
+                      },
+                      { role: 'user', content: evalPrompt },
+                    ],
+                    response_format: { type: 'json_object' },
+                    temperature: 0.1,
                   }),
                 }
               );
 
-              if (!geminiRes.ok) {
-                const errText = await geminiRes.text();
-                const err = new Error(errText || `Gemini API HTTP ${geminiRes.status}`);
-                err.status = geminiRes.status;
+              if (!groqRes.ok) {
+                const errText = await groqRes.text();
+                const err = new Error(errText || `Groq API HTTP ${groqRes.status}`);
+                err.status = groqRes.status;
                 throw err;
               }
 
-              const data = await geminiRes.json();
-              const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+              const data = await groqRes.json();
+              const rawText = data?.choices?.[0]?.message?.content;
               if (rawText) {
                 return JSON.parse(rawText);
               }
             } catch (err) {
               lastErr = err;
-              if (err.status === 429 || err.status === 402 || err.status === 403) {
+              if (err.status === 429 || err.status === 401 || err.status === 402 || err.status === 403) {
                 throw err; // Trigger key rotation to next key in pool
               }
             }
@@ -470,6 +555,7 @@ Output strictly a JSON object:
       return sendJson(res, 200, {
         isCorrect: Boolean(evalResult.isCorrect),
         feedback: evalResult.feedback || (evalResult.isCorrect ? 'Correct!' : 'Incorrect.'),
+        nextDifficulty: evalResult.nextDifficulty,
       });
     } catch {
       return sendJson(res, 200, { isCorrect: false, feedback: 'Incorrect answer. Try again.' });
@@ -481,6 +567,6 @@ Output strictly a JSON object:
 
 server.listen(PORT, () => {
   console.log(`[ABYSS BACKEND] Secure API server listening on http://localhost:${PORT}`);
-  console.log(`[ABYSS BACKEND] Gemini AI Status: ${GEMINI_API_KEY ? 'ACTIVE' : 'STANDBY'}`);
+  console.log(`[ABYSS BACKEND] Groq AI Status: ${GROQ_API_KEY ? 'ACTIVE' : 'STANDBY'}`);
   console.log(`[ABYSS BACKEND] Supabase Database: ${getSupabaseAdmin(process.env) ? 'CONNECTED' : 'STANDBY'}`);
 });

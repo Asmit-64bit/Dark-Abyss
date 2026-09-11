@@ -12,9 +12,6 @@ export const ReactorCore: React.FC = () => {
   const { staticScene, doorLeaf } = useBathroomScene();
 
   useFrame(({ clock }) => {
-    if (doorLeaf) {
-      doorLeaf.visible = !escaped;
-    }
     const t = clock.getElapsedTime();
     if (cabinetGlowRef.current) {
       cabinetGlowRef.current.emissiveIntensity = hasItem('Coolant Override')
@@ -53,7 +50,7 @@ export const ReactorCore: React.FC = () => {
       </RigidBody>
 
       {/* Door leaf: purely visual, hidden once escaped */}
-      {doorLeaf && <primitive object={doorLeaf} />}
+      {doorLeaf && !escaped && <primitive object={doorLeaf} />}
 
       {/* Invisible physical barrier across the doorway — only solid while locked */}
       {!escaped && (

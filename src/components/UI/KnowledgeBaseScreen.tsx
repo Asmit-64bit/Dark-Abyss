@@ -5,11 +5,12 @@ import { BookOpen, Terminal } from 'lucide-react';
 
 export const KnowledgeBaseScreen: React.FC = () => {
   const { setAppState, selectedDomain } = useGameStore();
-  const [knowledgeText, setKnowledgeText] = React.useState('GENERATING DOSSIER FROM MAINFRAME...');
+  const [knowledgeText, setKnowledgeText] = React.useState(() =>
+    selectedDomain ? 'GENERATING DOSSIER FROM MAINFRAME...' : 'NO DATA FOUND FOR DESIGNATED SECTOR.'
+  );
 
   React.useEffect(() => {
     if (!selectedDomain) {
-      setKnowledgeText('NO DATA FOUND FOR DESIGNATED SECTOR.');
       return;
     }
     
@@ -27,7 +28,7 @@ export const KnowledgeBaseScreen: React.FC = () => {
         setKnowledgeText(DOMAIN_KNOWLEDGE_BASES[selectedDomain] || 'ERROR: FALLBACK DATA USED.\\n\\n' + data.error);
       }
     })
-    .catch(err => {
+    .catch((_err) => {
       setKnowledgeText(DOMAIN_KNOWLEDGE_BASES[selectedDomain] || 'CRITICAL FAILURE: DOSSIER CORRUPTED.');
     });
   }, [selectedDomain]);

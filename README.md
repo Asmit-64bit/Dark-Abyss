@@ -5,7 +5,7 @@
 [![Vite](https://img.shields.io/badge/Vite-8.2.2-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![Three.js](https://img.shields.io/badge/Three.js-r173-black?style=flat&logo=three.js&logoColor=white)](https://threejs.org/)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash%20AI-4285F4?style=flat&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Groq](https://img.shields.io/badge/Groq-Llama%203.3%2070B-F55036?style=flat)](https://groq.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database%20%26%20Auth-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -25,9 +25,9 @@
 
 ## ✨ Key Features
 
-### 🧠 1. AI-Powered Dynamic Puzzle Engine & 6-Key Rotator
-- **Adaptive Generation**: Coding challenges generated dynamically using Google Gemini models tailored to your performance and chosen curriculum domain.
-- **Failover Pool**: Intelligent rotator supporting up to 6 Gemini API keys (`GEMINI_API_KEY_1` through `GEMINI_API_KEY_6`). Automatically handles 429 quota exhaustion or billing limits by switching keys with zero player downtime.
+### 🧠 1. AI-Powered Dynamic Puzzle Engine & Groq 6-Key Rotator
+- **Adaptive Generation**: Coding challenges generated dynamically using Groq (`llama-3.3-70b-versatile` & `llama-3.1-8b-instant`) tailored to your performance and chosen curriculum domain with sub-second latency.
+- **Failover Pool**: Intelligent rotator supporting up to 6 Groq API keys (`GROQ_API_KEY_1` through `GROQ_API_KEY_6`). Automatically handles 429 TPM/RPM rate limits by switching keys with zero player downtime.
 - **Dynamic Difficulty**: Real-time threat adaptation that escalates or recalibrates difficulty tiers (`Easy`, `Intermediate`, `Advanced`, `Expert`) based on solve speed and error count.
 
 ### 🏆 2. Solo Solve Scoring & Global Leaderboard
@@ -94,21 +94,21 @@ npm install
 Create a `.env` file in the root directory (or copy from `.env.example`):
 
 ```env
-# Gemini API Multi-Key Failover Pool
-GEMINI_API_KEY_1=AIzaSy...
-GEMINI_API_KEY_2=AIzaSy...
-GEMINI_API_KEY_3=AIzaSy...
-GEMINI_API_KEY_4=AIzaSy...
-GEMINI_API_KEY_5=AIzaSy...
-GEMINI_API_KEY_6=AIzaSy...
+# Groq API Multi-Key Failover Pool
+GROQ_API_KEY_1=gsk_...
+GROQ_API_KEY_2=gsk_...
+GROQ_API_KEY_3=gsk_...
+GROQ_API_KEY_4=gsk_...
+GROQ_API_KEY_5=gsk_...
+GROQ_API_KEY_6=gsk_...
 
-# Default / Fallback Key & Model
-VITE_GEMINI_API_KEY=AIzaSy...
-VITE_GEMINI_MODEL=gemini-3.6-flash
+# Default Key & Model
+GROQ_API_KEY=gsk_...
+GROQ_MODEL=llama-3.3-70b-versatile
 
 # Supabase Cloud Database & Authentication
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 ```
 
@@ -144,7 +144,7 @@ npm run preview
 Abyss/
 ├── public/                 # 3D GLTF models, audio files, textures
 ├── server/                 # Backend proxy & services
-│   ├── geminiKeyPool.js    # 6-Key Gemini API failover rotator
+│   ├── groqKeyPool.js      # 6-Key Groq API failover rotator
 │   ├── supabaseService.js  # Supabase auth, profile sync & leaderboard
 │   └── index.js            # Standalone Node.js server
 ├── src/
@@ -157,7 +157,7 @@ Abyss/
 │   │   └── Player.tsx      # First-person Rapier physics controller
 │   ├── data/               # Pre-generated puzzles & curriculum mappings
 │   ├── lib/                # Backend API client (`apiClient.ts`)
-│   ├── services/           # Gemini AI puzzle generator & evaluator
+│   ├── services/           # Groq AI puzzle generator & evaluator (`aiService.ts`)
 │   ├── store/              # Zustand global state (`gameStore`, `authStore`)
 │   └── utils/              # Sound synthesizers & audio effects
 ├── supabase/

@@ -76,6 +76,7 @@ export const ProfileDashboard: React.FC<ProfileDashboardProps> = ({ onClose }) =
     setAuthModalOpen,
     syncProfileToCloud,
     syncProfileFromCloud,
+    resetCloudProfile,
   } = useAuthStore();
 
   const [isEditingName, setIsEditingName] = useState(false);
@@ -756,9 +757,12 @@ export const ProfileDashboard: React.FC<ProfileDashboardProps> = ({ onClose }) =
                 <span className="profile-reset-warning">CONFIRM PURGE ALL DOSSIER DATA?</span>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
                     playHeavyDoorSlam();
                     resetProgress();
+                    if (user && resetCloudProfile) {
+                      await resetCloudProfile();
+                    }
                     setShowResetConfirm(false);
                   }}
                   className="profile-btn-danger"

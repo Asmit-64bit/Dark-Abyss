@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { apiClient, type LeaderboardEntry } from '../../lib/apiClient';
-import { Trophy, User, X, RefreshCw } from 'lucide-react';
+import { Trophy, User, X, RefreshCw, Target, ShieldCheck, Flame } from 'lucide-react';
 import { playTerminalBlip } from '../../utils/soundEffects';
 
 interface LeaderboardModalProps {
@@ -9,8 +9,18 @@ interface LeaderboardModalProps {
   onClose: () => void;
 }
 
+const LOCAL_LEADERBOARD_KEY = 'abyss-leaderboard-cache-v1';
+
 export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose }) => {
-  const { operatorName, score, soloSolvesCount } = useGameStore();
+  const {
+    operatorName,
+    score,
+    soloSolvesCount,
+    unlockedLevel,
+    completedLevels,
+    achievements,
+    minSanityRecorded,
+  } = useGameStore();
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,45 +30,246 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
   const fetchLeaderboard = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await apiClient.getLeaderboard(50);
-      if (res?.leaderboard) {
-        setLeaderboard(res.leaderboard);
+      let apiEntries: LeaderboardEntry[] = [];
+
+      // 1. Fetch from server API
+      try {
+        const res = await apiClient.getLeaderboard(50);
+        if (res?.leaderboard && Array.isArray(res.leaderboard) && res.leaderboard.length > 0) {
+          apiEntries = res.leaderboard;
+        }
+      } catch (netErr) {
+        console.warn('Network leaderboard fetch error, checking local cache:', netErr);
       }
+
+      // 2. Fallback to localStorage cache if server returned empty
+      if (apiEntries.length === 0) {
+        try {
+          const cached = localStorage.getItem(LOCAL_LEADERBOARD_KEY);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              apiEntries = parsed;
+            }
+          }
+        } catch {}
+      }
+
+      // 3. Merge current player's live gameplay stats
+      const currentOperator = (operatorName || 'OPERATOR_09').trim().toUpperCase();
+      const playerEntry: LeaderboardEntry = {
+        rank: 0,
+        operator_name: currentOperator,
+        score: score || 0,
+        points: score || 0,
+        solo_solves_count: soloSolvesCount || 0,
+        unlocked_level: unlockedLevel || 1,
+        completed_levels: completedLevels || [],
+        achievements_count: achievements?.length || 0,
+        min_sanity_recorded: minSanityRecorded ?? 100,
+        is_current_user: true,
+      };
+
+      const existingIdx = apiEntries.findIndex(
+        (e) => (e.operator_name || '').toUpperCase() === currentOperator
+      );
+
+      let merged: LeaderboardEntry[];
+      if (existingIdx !== -1) {
+        const existing = apiEntries[existingIdx];
+        merged = [...apiEntries];
+        merged[existingIdx] = {
+          ...existing,
+          operator_name: currentOperator,
+          score: Math.max(existing.score || 0, score || 0),
+          points: Math.max(existing.points || 0, score || 0),
+          solo_solves_count: Math.max(existing.solo_solves_count || 0, soloSolvesCount || 0),
+          unlocked_level: Math.max(existing.unlocked_level || 1, unlockedLevel || 1),
+          completed_levels:
+            completedLevels && completedLevels.length >= (existing.completed_levels?.length || 0)
+              ? completedLevels
+              : existing.completed_levels || [],
+          achievements_count: Math.max(existing.achievements_count || 0, achievements?.length || 0),
+          min_sanity_recorded: Math.min(existing.min_sanity_recorded ?? 100, minSanityRecorded ?? 100),
+          is_current_user: true,
+        };
+      } else {
+        merged = [playerEntry, ...apiEntries];
+      }
+
+      // 4. Save merged roster to local cache for offline persistence
+      try {
+        localStorage.setItem(LOCAL_LEADERBOARD_KEY, JSON.stringify(merged));
+      } catch {}
+
+      setLeaderboard(merged);
     } catch (err) {
-      console.warn('Failed to fetch leaderboard:', err);
+      console.warn('Failed to fetch/merge leaderboard:', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [operatorName, score, soloSolvesCount, unlockedLevel, completedLevels, achievements, minSanityRecorded]);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchLeaderboard();
-    }
+    if (!isOpen) return;
+    let isMounted = true;
+    queueMicrotask(() => {
+      if (isMounted) {
+        void fetchLeaderboard();
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [isOpen, fetchLeaderboard]);
 
   if (!isOpen) return null;
 
-  // Sorting based on active filter
+  // Multi-attribute sorting based on active filter
   const sortedEntries = [...leaderboard].sort((a, b) => {
     if (filterMode === 'solo') {
-      return (b.solo_solves_count || 0) - (a.solo_solves_count || 0);
+      const soloDiff = (b.solo_solves_count || 0) - (a.solo_solves_count || 0);
+      if (soloDiff !== 0) return soloDiff;
+      return (b.score || 0) - (a.score || 0);
     }
     if (filterMode === 'sanity') {
-      return (b.min_sanity_recorded ?? 100) - (a.min_sanity_recorded ?? 100);
+      const sanityDiff = (b.min_sanity_recorded ?? 100) - (a.min_sanity_recorded ?? 100);
+      if (sanityDiff !== 0) return sanityDiff;
+      return (b.score || 0) - (a.score || 0);
     }
-    return (b.score || 0) - (a.score || 0);
+    const scoreDiff = (b.score || 0) - (a.score || 0);
+    if (scoreDiff !== 0) return scoreDiff;
+    return (b.solo_solves_count || 0) - (a.solo_solves_count || 0);
   });
 
   const filteredEntries = sortedEntries.filter((item) =>
-    item.operator_name.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    (item.operator_name || '').toLowerCase().includes(searchQuery.toLowerCase().trim())
   );
 
   // Find player rank in current view
+  const currentOperatorUpper = (operatorName || 'OPERATOR_09').trim().toUpperCase();
   const playerRankIndex = sortedEntries.findIndex(
-    (e) => e.operator_name.toUpperCase() === operatorName.toUpperCase()
+    (e) => (e.operator_name || '').toUpperCase() === currentOperatorUpper
   );
   const playerRank = playerRankIndex !== -1 ? playerRankIndex + 1 : '—';
+
+  // Helper for rendering category-specific metrics in podium
+  const renderPodiumScore = (entry?: LeaderboardEntry, isGold = false) => {
+    if (!entry) return null;
+
+    if (filterMode === 'solo') {
+      return (
+        <>
+          <div
+            style={{
+              fontSize: isGold ? '22px' : '18px',
+              fontWeight: 900,
+              color: '#4ade80',
+              margin: '4px 0 2px',
+            }}
+          >
+            {entry.solo_solves_count || 0}{' '}
+            <span style={{ fontSize: isGold ? '11px' : '10px', fontWeight: 700, color: '#86efac' }}>
+              SOLOS
+            </span>
+          </div>
+          <div
+            style={{
+              fontSize: isGold ? '11.5px' : '11px',
+              color: '#94a3b8',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '8px',
+            }}
+          >
+            <span>🏆 {entry.score?.toLocaleString()} PTS</span>
+            <span>•</span>
+            <span>⚡ Sec 0{entry.unlocked_level || 1}</span>
+          </div>
+        </>
+      );
+    }
+
+    if (filterMode === 'sanity') {
+      const sanVal = entry.min_sanity_recorded ?? 100;
+      return (
+        <>
+          <div
+            style={{
+              fontSize: isGold ? '22px' : '18px',
+              fontWeight: 900,
+              color: '#c084fc',
+              margin: '4px 0 2px',
+            }}
+          >
+            {sanVal}%{' '}
+            <span style={{ fontSize: isGold ? '11px' : '10px', fontWeight: 700, color: '#d8b4fe' }}>
+              SANITY
+            </span>
+          </div>
+          <div
+            style={{
+              fontSize: isGold ? '11.5px' : '11px',
+              color: '#94a3b8',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '8px',
+            }}
+          >
+            <span>🏆 {entry.score?.toLocaleString()} PTS</span>
+            <span>•</span>
+            <span>🎯 {entry.solo_solves_count || 0} Solos</span>
+          </div>
+        </>
+      );
+    }
+
+    // Default: Top Score
+    return (
+      <>
+        <div
+          style={{
+            fontSize: isGold ? '22px' : '18px',
+            fontWeight: 900,
+            color: isGold ? '#fef08a' : '#e2e8f0',
+            margin: '4px 0 2px',
+          }}
+        >
+          {entry.score?.toLocaleString() || 0}{' '}
+          <span
+            style={{
+              fontSize: isGold ? '11px' : '10px',
+              fontWeight: 600,
+              color: isGold ? '#ca8a04' : '#94a3b8',
+            }}
+          >
+            PTS
+          </span>
+        </div>
+        <div
+          style={{
+            fontSize: isGold ? '11.5px' : '11px',
+            color: isGold ? '#fef08a' : '#94a3b8',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '8px',
+            opacity: 0.9,
+          }}
+        >
+          <span>🎯 {entry.solo_solves_count || 0} Solos</span>
+          <span>•</span>
+          <span>⚡ Sec 0{entry.unlocked_level || 1}</span>
+        </div>
+      </>
+    );
+  };
+
+  const championBadge =
+    filterMode === 'solo'
+      ? 'UNASSISTED APEX'
+      : filterMode === 'sanity'
+      ? 'IRON MIND REIGN'
+      : 'MAINFRAME LEADER';
 
   return (
     <div
@@ -189,8 +400,8 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
           </div>
         </div>
 
-        {/* Top 3 Podium Cards */}
-        {leaderboard.length >= 3 && searchQuery === '' && filterMode === 'score' && (
+        {/* Top 3 Podium Cards across all filters */}
+        {sortedEntries.length >= 3 && searchQuery === '' && (
           <div
             style={{
               padding: '1.25rem 1.75rem 0.5rem',
@@ -200,104 +411,227 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             }}
           >
             {/* Rank 2 (Silver) */}
-            <div
-              style={{
-                background: 'linear-gradient(180deg, rgba(203, 213, 225, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
-                border: '1px solid rgba(203, 213, 225, 0.2)',
-                borderRadius: '6px',
-                padding: '1rem',
-                textAlign: 'center',
-                position: 'relative',
-              }}
-            >
-              <div style={{ color: '#94a3b8', fontSize: '10px', fontWeight: 800, letterSpacing: '0.15em', marginBottom: '4px' }}>
-                RANK #2 // SILVER
-              </div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#f8fafc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {leaderboard[1]?.operator_name}
-              </div>
-              <div style={{ fontSize: '18px', fontWeight: 800, color: '#e2e8f0', margin: '4px 0 2px' }}>
-                {leaderboard[1]?.score?.toLocaleString()} <span style={{ fontSize: '10px', fontWeight: 600, color: '#94a3b8' }}>PTS</span>
-              </div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                <span>🎯 {leaderboard[1]?.solo_solves_count} Solos</span>
-                <span>•</span>
-                <span>⚡ Sec 0{leaderboard[1]?.unlocked_level}</span>
-              </div>
-            </div>
+            {(() => {
+              const rank2 = sortedEntries[1];
+              const isUser =
+                (rank2?.operator_name || '').toUpperCase() === currentOperatorUpper;
+
+              return (
+                <div
+                  style={{
+                    background: isUser
+                      ? 'linear-gradient(180deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%)'
+                      : 'linear-gradient(180deg, rgba(203, 213, 225, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                    border: isUser
+                      ? '1px solid rgba(56, 189, 248, 0.4)'
+                      : '1px solid rgba(203, 213, 225, 0.2)',
+                    borderRadius: '6px',
+                    padding: '1rem',
+                    textAlign: 'center',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    style={{
+                      color: '#94a3b8',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      letterSpacing: '0.15em',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    RANK #2 // SILVER
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: isUser ? '#38bdf8' : '#f8fafc',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span>{rank2?.operator_name}</span>
+                    {isUser && (
+                      <span
+                        style={{
+                          fontSize: '8.5px',
+                          background: '#38bdf8',
+                          color: '#000',
+                          padding: '1px 4px',
+                          borderRadius: '3px',
+                          fontWeight: 800,
+                        }}
+                      >
+                        YOU
+                      </span>
+                    )}
+                  </div>
+                  {renderPodiumScore(rank2, false)}
+                </div>
+              );
+            })()}
 
             {/* Rank 1 (Gold) */}
-            <div
-              style={{
-                background: 'linear-gradient(180deg, rgba(234, 179, 8, 0.14) 0%, rgba(20, 24, 33, 0.8) 100%)',
-                border: '1px solid rgba(234, 179, 8, 0.4)',
-                boxShadow: '0 0 24px rgba(234, 179, 8, 0.12)',
-                borderRadius: '6px',
-                padding: '1.15rem 1rem',
-                textAlign: 'center',
-                position: 'relative',
-                transform: 'translateY(-4px)',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '-10px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#facc15',
-                  color: '#000',
-                  padding: '1px 8px',
-                  borderRadius: '12px',
-                  fontSize: '9px',
-                  fontWeight: 900,
-                  letterSpacing: '0.12em',
-                }}
-              >
-                MAINFRAME LEADER
-              </div>
-              <div style={{ color: '#facc15', fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.15em', marginBottom: '4px' }}>
-                RANK #1 // CHAMPION
-              </div>
-              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {leaderboard[0]?.operator_name}
-              </div>
-              <div style={{ fontSize: '22px', fontWeight: 900, color: '#fef08a', margin: '4px 0 2px' }}>
-                {leaderboard[0]?.score?.toLocaleString()} <span style={{ fontSize: '11px', fontWeight: 600, color: '#ca8a04' }}>PTS</span>
-              </div>
-              <div style={{ fontSize: '11.5px', color: '#fef08a', display: 'flex', justifyContent: 'center', gap: '8px', opacity: 0.9 }}>
-                <span>🎯 {leaderboard[0]?.solo_solves_count} Solos</span>
-                <span>•</span>
-                <span>⚡ Sec 0{leaderboard[0]?.unlocked_level}</span>
-              </div>
-            </div>
+            {(() => {
+              const rank1 = sortedEntries[0];
+              const isUser =
+                (rank1?.operator_name || '').toUpperCase() === currentOperatorUpper;
+
+              return (
+                <div
+                  style={{
+                    background: isUser
+                      ? 'linear-gradient(180deg, rgba(56, 189, 248, 0.2) 0%, rgba(20, 24, 33, 0.85) 100%)'
+                      : 'linear-gradient(180deg, rgba(234, 179, 8, 0.14) 0%, rgba(20, 24, 33, 0.8) 100%)',
+                    border: isUser
+                      ? '1px solid rgba(56, 189, 248, 0.6)'
+                      : '1px solid rgba(234, 179, 8, 0.4)',
+                    boxShadow: isUser
+                      ? '0 0 28px rgba(56, 189, 248, 0.25)'
+                      : '0 0 24px rgba(234, 179, 8, 0.12)',
+                    borderRadius: '6px',
+                    padding: '1.15rem 1rem',
+                    textAlign: 'center',
+                    position: 'relative',
+                    transform: 'translateY(-4px)',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: isUser ? '#38bdf8' : '#facc15',
+                      color: '#000',
+                      padding: '1px 8px',
+                      borderRadius: '12px',
+                      fontSize: '9px',
+                      fontWeight: 900,
+                      letterSpacing: '0.12em',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {championBadge}
+                  </div>
+                  <div
+                    style={{
+                      color: isUser ? '#38bdf8' : '#facc15',
+                      fontSize: '10.5px',
+                      fontWeight: 800,
+                      letterSpacing: '0.15em',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    RANK #1 // CHAMPION
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '14.5px',
+                      fontWeight: 800,
+                      color: '#ffffff',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span>{rank1?.operator_name}</span>
+                    {isUser && (
+                      <span
+                        style={{
+                          fontSize: '8.5px',
+                          background: '#38bdf8',
+                          color: '#000',
+                          padding: '1px 4px',
+                          borderRadius: '3px',
+                          fontWeight: 800,
+                        }}
+                      >
+                        YOU
+                      </span>
+                    )}
+                  </div>
+                  {renderPodiumScore(rank1, true)}
+                </div>
+              );
+            })()}
 
             {/* Rank 3 (Bronze) */}
-            <div
-              style={{
-                background: 'linear-gradient(180deg, rgba(217, 119, 6, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
-                border: '1px solid rgba(217, 119, 6, 0.25)',
-                borderRadius: '6px',
-                padding: '1rem',
-                textAlign: 'center',
-                position: 'relative',
-              }}
-            >
-              <div style={{ color: '#fb923c', fontSize: '10px', fontWeight: 800, letterSpacing: '0.15em', marginBottom: '4px' }}>
-                RANK #3 // BRONZE
-              </div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#f8fafc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {leaderboard[2]?.operator_name}
-              </div>
-              <div style={{ fontSize: '18px', fontWeight: 800, color: '#fdba74', margin: '4px 0 2px' }}>
-                {leaderboard[2]?.score?.toLocaleString()} <span style={{ fontSize: '10px', fontWeight: 600, color: '#ea580c' }}>PTS</span>
-              </div>
-              <div style={{ fontSize: '11px', color: '#94a3b8', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                <span>🎯 {leaderboard[2]?.solo_solves_count} Solos</span>
-                <span>•</span>
-                <span>⚡ Sec 0{leaderboard[2]?.unlocked_level}</span>
-              </div>
-            </div>
+            {(() => {
+              const rank3 = sortedEntries[2];
+              const isUser =
+                (rank3?.operator_name || '').toUpperCase() === currentOperatorUpper;
+
+              return (
+                <div
+                  style={{
+                    background: isUser
+                      ? 'linear-gradient(180deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.7) 100%)'
+                      : 'linear-gradient(180deg, rgba(217, 119, 6, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                    border: isUser
+                      ? '1px solid rgba(56, 189, 248, 0.4)'
+                      : '1px solid rgba(217, 119, 6, 0.25)',
+                    borderRadius: '6px',
+                    padding: '1rem',
+                    textAlign: 'center',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    style={{
+                      color: '#fb923c',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      letterSpacing: '0.15em',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    RANK #3 // BRONZE
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: isUser ? '#38bdf8' : '#f8fafc',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span>{rank3?.operator_name}</span>
+                    {isUser && (
+                      <span
+                        style={{
+                          fontSize: '8.5px',
+                          background: '#38bdf8',
+                          color: '#000',
+                          padding: '1px 4px',
+                          borderRadius: '3px',
+                          fontWeight: 800,
+                        }}
+                      >
+                        YOU
+                      </span>
+                    )}
+                  </div>
+                  {renderPodiumScore(rank3, false)}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -328,9 +662,13 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 fontSize: '11px',
                 fontWeight: 600,
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
               }}
             >
-              TOP SCORE
+              <Flame size={12} />
+              <span>TOP SCORE</span>
             </button>
             <button
               onClick={() => {
@@ -346,9 +684,13 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 fontSize: '11px',
                 fontWeight: 600,
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
               }}
             >
-              SOLO PURISTS
+              <Target size={12} />
+              <span>SOLO PURISTS</span>
             </button>
             <button
               onClick={() => {
@@ -364,9 +706,13 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 fontSize: '11px',
                 fontWeight: 600,
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
               }}
             >
-              SANITY MASTERS
+              <ShieldCheck size={12} />
+              <span>SANITY MASTERS</span>
             </button>
           </div>
 
@@ -395,39 +741,82 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             <div style={{ textAlign: 'center', padding: '3.5rem 1rem', color: '#94a3b8' }}>
               <Trophy size={36} color="#64748b" style={{ margin: '0 auto 0.75rem', opacity: 0.4 }} />
               <p style={{ fontWeight: 700, fontSize: '13px', color: '#e2e8f0', margin: '0 0 6px', letterSpacing: '0.05em' }}>
-                NO OPERATOR RECORDS IN DATABASE YET
+                NO MATCHING OPERATOR RECORDS FOUND
               </p>
               <p style={{ fontSize: '11px', margin: 0, opacity: 0.75, maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>
-                Solve puzzles independently on your own to earn points and claim the #1 spot on the global mainframe!
+                Try adjusting your search criteria or solve puzzles independently to climb the rankings.
               </p>
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
-                <tr style={{ color: '#64748b', fontSize: '10px', letterSpacing: '0.1em', textAlign: 'left', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <tr
+                  style={{
+                    color: '#64748b',
+                    fontSize: '10px',
+                    letterSpacing: '0.1em',
+                    textAlign: 'left',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                  }}
+                >
                   <th style={{ padding: '8px 6px', width: '50px' }}>RANK</th>
                   <th style={{ padding: '8px 10px' }}>OPERATOR</th>
-                  <th style={{ padding: '8px 10px', textAlign: 'right' }}>SCORE</th>
-                  <th style={{ padding: '8px 10px', textAlign: 'center' }}>SOLO SOLVES</th>
+                  <th
+                    style={{
+                      padding: '8px 10px',
+                      textAlign: 'right',
+                      color: filterMode === 'score' ? '#38bdf8' : '#64748b',
+                    }}
+                  >
+                    SCORE
+                  </th>
+                  <th
+                    style={{
+                      padding: '8px 10px',
+                      textAlign: 'center',
+                      color: filterMode === 'solo' ? '#4ade80' : '#64748b',
+                    }}
+                  >
+                    SOLO SOLVES
+                  </th>
                   <th style={{ padding: '8px 10px', textAlign: 'center' }}>MAX SECTOR</th>
-                  <th style={{ padding: '8px 10px', textAlign: 'center' }}>MIN SANITY</th>
+                  <th
+                    style={{
+                      padding: '8px 10px',
+                      textAlign: 'center',
+                      color: filterMode === 'sanity' ? '#c084fc' : '#64748b',
+                    }}
+                  >
+                    MIN SANITY
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredEntries.map((entry, idx) => {
-                  const isCurrentPlayer = entry.operator_name.toUpperCase() === operatorName.toUpperCase();
-                  const rankNum = idx + 1;
+                {filteredEntries.map((entry) => {
+                  const isCurrentPlayer =
+                    (entry.operator_name || '').toUpperCase() === currentOperatorUpper;
+                  const rankNum =
+                    sortedEntries.findIndex(
+                      (e) => (e.operator_name || '').toUpperCase() === (entry.operator_name || '').toUpperCase()
+                    ) + 1;
 
                   return (
                     <tr
-                      key={entry.operator_name + idx}
+                      key={entry.operator_name}
                       style={{
                         borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-                        background: isCurrentPlayer ? 'rgba(56, 189, 248, 0.08)' : 'transparent',
+                        background: isCurrentPlayer ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
+                        borderLeft: isCurrentPlayer ? '3px solid #38bdf8' : '3px solid transparent',
                         transition: 'background 0.1s ease',
                       }}
                     >
-                      <td style={{ padding: '10px 6px', fontWeight: 700, color: rankNum <= 3 ? '#facc15' : '#64748b' }}>
+                      <td
+                        style={{
+                          padding: '10px 6px',
+                          fontWeight: 700,
+                          color: rankNum <= 3 ? '#facc15' : '#64748b',
+                        }}
+                      >
                         {rankNum === 1 ? '🥇 1' : rankNum === 2 ? '🥈 2' : rankNum === 3 ? '🥉 3' : `#${rankNum}`}
                       </td>
                       <td style={{ padding: '10px 10px', fontWeight: 600 }}>
@@ -436,16 +825,40 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                             {entry.operator_name}
                           </span>
                           {isCurrentPlayer && (
-                            <span style={{ fontSize: '9px', background: '#38bdf8', color: '#000', padding: '1px 4px', borderRadius: '3px', fontWeight: 800 }}>
+                            <span
+                              style={{
+                                fontSize: '9px',
+                                background: '#38bdf8',
+                                color: '#000',
+                                padding: '1px 4px',
+                                borderRadius: '3px',
+                                fontWeight: 800,
+                              }}
+                            >
                               YOU
                             </span>
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 800, color: '#f8fafc', fontFamily: 'JetBrains Mono, monospace' }}>
+                      <td
+                        style={{
+                          padding: '10px 10px',
+                          textAlign: 'right',
+                          fontWeight: 800,
+                          color: filterMode === 'score' ? '#fef08a' : '#f8fafc',
+                          fontFamily: 'JetBrains Mono, monospace',
+                        }}
+                      >
                         {entry.score?.toLocaleString() || 0}
                       </td>
-                      <td style={{ padding: '10px 10px', textAlign: 'center', color: '#4ade80', fontWeight: 600 }}>
+                      <td
+                        style={{
+                          padding: '10px 10px',
+                          textAlign: 'center',
+                          color: '#4ade80',
+                          fontWeight: filterMode === 'solo' ? 800 : 600,
+                        }}
+                      >
                         🎯 {entry.solo_solves_count || 0}
                       </td>
                       <td style={{ padding: '10px 10px', textAlign: 'center', color: '#94a3b8' }}>
@@ -458,9 +871,25 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                             borderRadius: '3px',
                             fontSize: '10px',
                             fontWeight: 700,
-                            background: (entry.min_sanity_recorded ?? 100) > 60 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                            color: (entry.min_sanity_recorded ?? 100) > 60 ? '#4ade80' : '#f87171',
-                            border: `1px solid ${(entry.min_sanity_recorded ?? 100) > 60 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                            background:
+                              (entry.min_sanity_recorded ?? 100) > 70
+                                ? 'rgba(34, 197, 94, 0.12)'
+                                : (entry.min_sanity_recorded ?? 100) > 40
+                                ? 'rgba(234, 179, 8, 0.12)'
+                                : 'rgba(239, 68, 68, 0.12)',
+                            color:
+                              (entry.min_sanity_recorded ?? 100) > 70
+                                ? '#4ade80'
+                                : (entry.min_sanity_recorded ?? 100) > 40
+                                ? '#facc15'
+                                : '#f87171',
+                            border: `1px solid ${
+                              (entry.min_sanity_recorded ?? 100) > 70
+                                ? 'rgba(34, 197, 94, 0.25)'
+                                : (entry.min_sanity_recorded ?? 100) > 40
+                                ? 'rgba(234, 179, 8, 0.25)'
+                                : 'rgba(239, 68, 68, 0.25)'
+                            }`,
                           }}
                         >
                           {entry.min_sanity_recorded ?? 100}%
@@ -487,7 +916,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             gap: '1rem',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <User size={16} color="#38bdf8" />
               <span style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc' }}>
@@ -502,6 +931,12 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             </div>
             <div style={{ fontSize: '11px', color: '#94a3b8' }}>
               SOLO SOLVES: <strong style={{ color: '#4ade80' }}>{soloSolvesCount}</strong>
+            </div>
+            <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+              MAX SECTOR: <strong style={{ color: '#e2e8f0' }}>0{unlockedLevel || 1}</strong>
+            </div>
+            <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+              MIN SANITY: <strong style={{ color: '#c084fc' }}>{minSanityRecorded ?? 100}%</strong>
             </div>
           </div>
 

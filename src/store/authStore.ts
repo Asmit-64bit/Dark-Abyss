@@ -19,6 +19,7 @@ interface AuthState {
   signOut: () => Promise<void>;
   syncProfileToCloud: () => Promise<void>;
   syncProfileFromCloud: () => Promise<void>;
+  resetCloudProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -213,6 +214,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (err) {
       console.warn('Sync to backend error:', err);
+    } finally {
+      set({ isSyncing: false });
+    }
+  },
+
+  resetCloudProfile: async () => {
+    const { user } = get();
+    if (!user) return;
+
+    set({ isSyncing: true });
+    try {
+      const { profile } = await apiClient.resetProfile();
+      if (profile) {
+        set({ profile });
+      }
+    } catch (err) {
+      console.warn('Reset cloud profile error:', err);
     } finally {
       set({ isSyncing: false });
     }

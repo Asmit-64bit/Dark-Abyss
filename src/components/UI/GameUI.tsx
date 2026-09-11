@@ -23,9 +23,9 @@ import {
   Eye,
 } from 'lucide-react';
 import {
-  generateGeminiPuzzle,
-  evaluateAnswerWithGemini,
-} from '../../services/geminiService';
+  generateAiPuzzle,
+  evaluateAnswerWithAi,
+} from '../../services/aiService';
 import { StudyNotesModal } from './StudyNotesModal';
 import { DocumentationViewer } from './DocumentationViewer';
 import { LeaderboardModal } from './LeaderboardModal';
@@ -163,7 +163,9 @@ export const GameUI: React.FC = () => {
   }, [activePuzzleId, showExitModal, setActivePuzzle]);
 
   const activePuzzle = activePuzzleId ? getPuzzle(activePuzzleId) : null;
-  const isAiGenerated = activePuzzleId ? puzzleSources[activePuzzleId] === 'gemini' : false;
+  const isAiGenerated = activePuzzleId
+    ? puzzleSources[activePuzzleId] === 'groq' || puzzleSources[activePuzzleId] === 'ai' || puzzleSources[activePuzzleId] === 'gemini'
+    : false;
 
   // Track baseline start time when first puzzle opens
   useEffect(() => {
@@ -183,7 +185,7 @@ export const GameUI: React.FC = () => {
     }
   }, [activePuzzleId, currentLevel, dynamicPuzzles, isReadingDocumentation, adaptiveDifficulty, setAdaptiveDifficulty, setIsReadingDocumentation]);
 
-  // Automatically fetch / generate Gemini puzzle when an active puzzle is opened
+  // Automatically fetch / generate AI puzzle when an active puzzle is opened
   useEffect(() => {
     // If we are reading documentation, the DocumentationViewer handles the background fetch
     if (!activePuzzleId || dynamicPuzzles[activePuzzleId] || (activePuzzleId === 3 && isReadingDocumentation)) {
@@ -195,10 +197,10 @@ export const GameUI: React.FC = () => {
       setIsLoadingPuzzle(true);
       setError('');
       try {
-        const generated = await generateGeminiPuzzle(activePuzzleId, adaptiveDifficulty || undefined);
+        const generated = await generateAiPuzzle(activePuzzleId, adaptiveDifficulty || undefined);
         if (isMounted) {
           setDynamicPuzzle(activePuzzleId, generated);
-          setPuzzleSource(activePuzzleId, 'gemini');
+          setPuzzleSource(activePuzzleId, 'groq');
           setPuzzleStartTime(Date.now());
         }
       } catch (err) {
@@ -215,7 +217,7 @@ export const GameUI: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [activePuzzleId, dynamicPuzzles, setDynamicPuzzle, setPuzzleSource]);
+  }, [activePuzzleId, dynamicPuzzles, setDynamicPuzzle, setPuzzleSource, setPuzzleStartTime, isReadingDocumentation, adaptiveDifficulty]);
 
   const handleRegeneratePuzzle = async () => {
     if (!activePuzzleId || isLoadingPuzzle) return;
@@ -223,9 +225,9 @@ export const GameUI: React.FC = () => {
     setError('');
     setFeedback('');
     try {
-      const generated = await generateGeminiPuzzle(activePuzzleId, adaptiveDifficulty || undefined);
+      const generated = await generateAiPuzzle(activePuzzleId, adaptiveDifficulty || undefined);
       setDynamicPuzzle(activePuzzleId, generated);
-      setPuzzleSource(activePuzzleId, 'gemini');
+      setPuzzleSource(activePuzzleId, 'groq');
       setPuzzleStartTime(Date.now());
       if (generated.codeSnippet) {
         setReplCode(generated.codeSnippet);
@@ -296,8 +298,9 @@ export const GameUI: React.FC = () => {
     playTerminalBlip();
 
     try {
-      const solveTimeMs = puzzleStartTime ? Date.now() - puzzleStartTime : undefined;
-      const result = await evaluateAnswerWithGemini(activePuzzle, answer, solveTimeMs, currentDifficulty);
+      const currentTime = typeof window !== 'undefined' ? window.Date.now() : 0;
+      const solveTimeMs = puzzleStartTime && currentTime ? currentTime - puzzleStartTime : undefined;
+      const result = await evaluateAnswerWithAi(activePuzzle, answer, solveTimeMs, currentDifficulty);
 
       if (result.isCorrect) {
         // Calculate points based on independent unassisted solve

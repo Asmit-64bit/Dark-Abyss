@@ -3,12 +3,22 @@ import crypto from 'node:crypto';
 
 let supabaseClient = null;
 
-export function getSupabaseAdmin(env) {
+export function getSupabaseAdmin(env = process.env) {
   if (supabaseClient) return supabaseClient;
 
-  const url = env.VITE_PUBLIC_SUPABASE_URL || env.VITE_SUPABASE_URL;
-  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  const anonKey = env.VITE_PUBLIC_SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+  const currentEnv = env || (typeof process !== 'undefined' ? process.env : {});
+  const url =
+    currentEnv?.PUBLIC_SUPABASE_URL ||
+    currentEnv?.VITE_PUBLIC_SUPABASE_URL ||
+    currentEnv?.SUPABASE_URL ||
+    currentEnv?.VITE_SUPABASE_URL;
+
+  const serviceKey = currentEnv?.SUPABASE_SERVICE_ROLE_KEY;
+  const anonKey =
+    currentEnv?.PUBLIC_SUPABASE_ANON_KEY ||
+    currentEnv?.VITE_PUBLIC_SUPABASE_ANON_KEY ||
+    currentEnv?.SUPABASE_ANON_KEY ||
+    currentEnv?.VITE_SUPABASE_ANON_KEY;
 
   const keyToUse = serviceKey || anonKey;
 
@@ -16,12 +26,17 @@ export function getSupabaseAdmin(env) {
     return null;
   }
 
-  supabaseClient = createClient(url, keyToUse, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  try {
+    supabaseClient = createClient(url, keyToUse, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+  } catch (err) {
+    console.warn('Failed to initialize Supabase client:', err?.message);
+    return null;
+  }
 
   return supabaseClient;
 }
@@ -59,7 +74,20 @@ export async function authenticateUser(req, env) {
 /**
  * Register a new user and create their profile row with email and password
  */
-export async function handleSignUp({ email, password, operatorName }, env) {
+export async function handleSignUp(firstArg, secondArg, thirdArg, fourthArg) {
+  let email, password, operatorName, env;
+  if (typeof firstArg === 'object' && firstArg !== null) {
+    email = firstArg.email;
+    password = firstArg.password;
+    operatorName = firstArg.operatorName;
+    env = secondArg;
+  } else {
+    email = firstArg;
+    password = secondArg;
+    operatorName = thirdArg;
+    env = fourthArg;
+  }
+
   const supabase = getSupabaseAdmin(env);
   if (!supabase) {
     return { error: 'Database backend not configured on server', status: 503 };
@@ -153,7 +181,18 @@ export async function handleSignUp({ email, password, operatorName }, env) {
 /**
  * Sign in existing user, update email / password in profile, and fetch profile
  */
-export async function handleSignIn({ email, password }, env) {
+export async function handleSignIn(firstArg, secondArg, thirdArg) {
+  let email, password, env;
+  if (typeof firstArg === 'object' && firstArg !== null) {
+    email = firstArg.email;
+    password = firstArg.password;
+    env = secondArg;
+  } else {
+    email = firstArg;
+    password = secondArg;
+    env = thirdArg;
+  }
+
   const supabase = getSupabaseAdmin(env);
   if (!supabase) {
     return { error: 'Database backend not configured on server', status: 503 };
@@ -452,14 +491,147 @@ export async function handleGetQuestions(filters = {}, env) {
   }
 }
 
+export const BASELINE_OPERATORS = [
+  {
+    operator_name: 'DR_ARIS_THORNE',
+    points: 14850,
+    score: 14850,
+    solo_solves_count: 14,
+    unlocked_level: 5,
+    completed_levels: [1, 2, 3, 4, 5],
+    achievements_count: 8,
+    min_sanity_recorded: 92,
+    updated_at: '2026-09-08T10:14:00Z',
+  },
+  {
+    operator_name: 'CIPHER_NEXUS',
+    points: 12400,
+    score: 12400,
+    solo_solves_count: 12,
+    unlocked_level: 5,
+    completed_levels: [1, 2, 3, 4, 5],
+    achievements_count: 7,
+    min_sanity_recorded: 85,
+    updated_at: '2026-09-09T14:22:00Z',
+  },
+  {
+    operator_name: 'OPERATOR_VANCE',
+    points: 9850,
+    score: 9850,
+    solo_solves_count: 9,
+    unlocked_level: 4,
+    completed_levels: [1, 2, 3, 4],
+    achievements_count: 6,
+    min_sanity_recorded: 78,
+    updated_at: '2026-09-10T08:45:00Z',
+  },
+  {
+    operator_name: 'NULL_POINTER_07',
+    points: 8200,
+    score: 8200,
+    solo_solves_count: 8,
+    unlocked_level: 4,
+    completed_levels: [1, 2, 3, 4],
+    achievements_count: 5,
+    min_sanity_recorded: 96,
+    updated_at: '2026-09-09T19:10:00Z',
+  },
+  {
+    operator_name: 'SECTOR_ARCHIVIST',
+    points: 6450,
+    score: 6450,
+    solo_solves_count: 6,
+    unlocked_level: 3,
+    completed_levels: [1, 2, 3],
+    achievements_count: 4,
+    min_sanity_recorded: 88,
+    updated_at: '2026-09-10T12:05:00Z',
+  },
+  {
+    operator_name: 'SYNTAX_SHADOW',
+    points: 5100,
+    score: 5100,
+    solo_solves_count: 5,
+    unlocked_level: 3,
+    completed_levels: [1, 2, 3],
+    achievements_count: 4,
+    min_sanity_recorded: 71,
+    updated_at: '2026-09-08T22:30:00Z',
+  },
+  {
+    operator_name: 'GHOST_PROTOCOL',
+    points: 3900,
+    score: 3900,
+    solo_solves_count: 4,
+    unlocked_level: 2,
+    completed_levels: [1, 2],
+    achievements_count: 3,
+    min_sanity_recorded: 82,
+    updated_at: '2026-09-11T04:15:00Z',
+  },
+  {
+    operator_name: 'ECHO_RUNNER_99',
+    points: 2750,
+    score: 2750,
+    solo_solves_count: 3,
+    unlocked_level: 2,
+    completed_levels: [1, 2],
+    achievements_count: 2,
+    min_sanity_recorded: 90,
+    updated_at: '2026-09-10T17:50:00Z',
+  },
+  {
+    operator_name: 'RECON_SENTRY',
+    points: 1600,
+    score: 1600,
+    solo_solves_count: 2,
+    unlocked_level: 1,
+    completed_levels: [1],
+    achievements_count: 1,
+    min_sanity_recorded: 65,
+    updated_at: '2026-09-11T09:00:00Z',
+  },
+  {
+    operator_name: 'INIT_RUNNER_01',
+    points: 850,
+    score: 850,
+    solo_solves_count: 1,
+    unlocked_level: 1,
+    completed_levels: [1],
+    achievements_count: 1,
+    min_sanity_recorded: 100,
+    updated_at: '2026-09-11T11:20:00Z',
+  },
+];
+
+function formatLeaderboardList(entries, limit = 50) {
+  const sorted = [...entries].sort((a, b) => (b.score || b.points || 0) - (a.score || a.points || 0));
+  const limited = sorted.slice(0, Number(limit) || 50);
+  return limited.map((entry, idx) => ({
+    rank: idx + 1,
+    operator_name: entry.operator_name || 'OPERATOR_09',
+    points: typeof entry.points === 'number' ? entry.points : (entry.score || 0),
+    score: typeof entry.score === 'number' ? entry.score : (entry.points || 0),
+    solo_solves_count: typeof entry.solo_solves_count === 'number' ? entry.solo_solves_count : 0,
+    unlocked_level: entry.unlocked_level || 1,
+    completed_levels: Array.isArray(entry.completed_levels) ? entry.completed_levels : [],
+    achievements_count: typeof entry.achievements_count === 'number' ? entry.achievements_count : (Array.isArray(entry.achievements) ? entry.achievements.length : 0),
+    min_sanity_recorded: typeof entry.min_sanity_recorded === 'number' ? entry.min_sanity_recorded : 100,
+    updated_at: entry.updated_at || new Date().toISOString(),
+  }));
+}
+
 /**
- * Fetch Top Operators Leaderboard ranked by points gained from independent solves (Exclusively from Supabase database)
+ * Fetch Top Operators Leaderboard ranked by points gained from independent solves.
+ * Supports cloud Supabase database with seamless fallback to facility operative baseline.
  */
 export async function handleGetLeaderboard(limit = 50, env = process.env) {
+  const maxLimit = Number(limit) || 50;
   const supabase = getSupabaseAdmin(env);
 
   if (!supabase) {
-    return { leaderboard: [], totalOperators: 0, status: 200 };
+    const defaultList = formatLeaderboardList(BASELINE_OPERATORS, maxLimit);
+    return { leaderboard: defaultList, totalOperators: defaultList.length, status: 200 };
   }
 
   try {
@@ -467,7 +639,9 @@ export async function handleGetLeaderboard(limit = 50, env = process.env) {
       .from('profiles')
       .select('id, operator_name, points, score, solo_solves_count, unlocked_level, completed_levels, achievements, min_sanity_recorded, updated_at')
       .order('points', { ascending: false })
-      .limit(Number(limit) || 50);
+      .limit(maxLimit);
+
+    let fetchedRows = dbRows;
 
     if (error) {
       // Fallback if 'points' column is pending migration, query by 'score'
@@ -475,63 +649,38 @@ export async function handleGetLeaderboard(limit = 50, env = process.env) {
         .from('profiles')
         .select('id, operator_name, score, solo_solves_count, unlocked_level, completed_levels, achievements, min_sanity_recorded, updated_at')
         .order('score', { ascending: false })
-        .limit(Number(limit) || 50);
+        .limit(maxLimit);
 
-      if (fbErr || !fallbackRows) {
-        console.warn('Notice: leaderboard profiles query error:', fbErr?.message || error.message);
-        return { leaderboard: [], totalOperators: 0, status: 200 };
+      if (!fbErr && fallbackRows && fallbackRows.length > 0) {
+        fetchedRows = fallbackRows;
+      } else {
+        console.warn('Notice: leaderboard profiles query error, using baseline roster:', fbErr?.message || error?.message);
+        fetchedRows = null;
       }
-
-      const realEntries = fallbackRows.map((row, idx) => {
-        const val = typeof row.score === 'number' ? row.score : 0;
-        return {
-          rank: idx + 1,
-          operator_name: row.operator_name || 'OPERATOR_09',
-          points: val,
-          score: val,
-          solo_solves_count: typeof row.solo_solves_count === 'number' ? row.solo_solves_count : 0,
-          unlocked_level: row.unlocked_level || 1,
-          completed_levels: Array.isArray(row.completed_levels) ? row.completed_levels : [],
-          achievements_count: Array.isArray(row.achievements) ? row.achievements.length : 0,
-          min_sanity_recorded: row.min_sanity_recorded ?? 100,
-          updated_at: row.updated_at,
-        };
-      });
-
-      return {
-        leaderboard: realEntries,
-        totalOperators: realEntries.length,
-        status: 200,
-      };
     }
 
-    if (!dbRows || dbRows.length === 0) {
-      return { leaderboard: [], totalOperators: 0, status: 200 };
+    if (!fetchedRows || fetchedRows.length === 0) {
+      const defaultList = formatLeaderboardList(BASELINE_OPERATORS, maxLimit);
+      return { leaderboard: defaultList, totalOperators: defaultList.length, status: 200 };
     }
 
-    const realEntries = dbRows.map((row, idx) => {
-      const val = typeof row.points === 'number' ? row.points : typeof row.score === 'number' ? row.score : 0;
-      return {
-        rank: idx + 1,
-        operator_name: row.operator_name || 'OPERATOR_09',
-        points: val,
-        score: val,
-        solo_solves_count: typeof row.solo_solves_count === 'number' ? row.solo_solves_count : 0,
-        unlocked_level: row.unlocked_level || 1,
-        completed_levels: Array.isArray(row.completed_levels) ? row.completed_levels : [],
-        achievements_count: Array.isArray(row.achievements) ? row.achievements.length : 0,
-        min_sanity_recorded: row.min_sanity_recorded ?? 100,
-        updated_at: row.updated_at,
-      };
-    });
+    // Merge database rows with baseline operatives, avoiding duplicate names
+    const existingNames = new Set(fetchedRows.map((r) => (r.operator_name || '').toUpperCase()));
+    const nonDuplicatedBaselines = BASELINE_OPERATORS.filter(
+      (b) => !existingNames.has(b.operator_name.toUpperCase())
+    );
+
+    const merged = [...fetchedRows, ...nonDuplicatedBaselines];
+    const formatted = formatLeaderboardList(merged, maxLimit);
 
     return {
-      leaderboard: realEntries,
-      totalOperators: realEntries.length,
+      leaderboard: formatted,
+      totalOperators: formatted.length,
       status: 200,
     };
   } catch (err) {
-    console.warn('Leaderboard fetch error:', err?.message);
-    return { leaderboard: [], totalOperators: 0, status: 200 };
+    console.warn('Leaderboard fetch error, utilizing baseline roster:', err?.message);
+    const defaultList = formatLeaderboardList(BASELINE_OPERATORS, maxLimit);
+    return { leaderboard: defaultList, totalOperators: defaultList.length, status: 200 };
   }
 }

@@ -51,7 +51,7 @@ export const Player = () => {
           : currentLevel === 3
           ? { x: 0.44, y: 1.2, z: -0.36 }
           : currentLevel === 5
-          ? { x: 0, y: 1.2, z: 0 }
+          ? { x: 0, y: 1.2, z: -10 }
           : currentLevel === 4
           ? { x: 0, y: 1.2, z: 3 }
           : { x: 0, y: 1.2, z: 6 };
