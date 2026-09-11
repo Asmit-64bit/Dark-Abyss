@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- 2. Add columns if table was created previously
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS password_hash TEXT;
+ALTER TABLE public.profiles ALTER COLUMN email DROP NOT NULL;
+ALTER TABLE public.profiles ALTER COLUMN password_hash DROP NOT NULL;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS operator_name TEXT NOT NULL DEFAULT 'OPERATOR_09';
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS unlocked_level INTEGER NOT NULL DEFAULT 1;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS completed_levels INTEGER[] NOT NULL DEFAULT '{}';

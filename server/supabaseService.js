@@ -670,13 +670,16 @@ function formatLeaderboardList(entries, limit = 50) {
 export async function handleGetLeaderboard(limit = 50, env = process.env) {
   const maxLimit = Number(limit) || 50;
   const supabase = getSupabaseAdmin(env);
+  let source = 'baseline';
 
   if (!supabase) {
+    console.log('[Leaderboard] No Supabase client available, using baseline roster');
     const defaultList = formatLeaderboardList(BASELINE_OPERATORS, maxLimit);
-    return { leaderboard: defaultList, totalOperators: defaultList.length, status: 200 };
+    return { leaderboard: defaultList, totalOperators: defaultList.length, source, status: 200 };
   }
 
   try {
+    console.log('[Leaderboard] Querying Supabase profiles table...');
     const { data: dbRows, error } = await supabase
       .from('profiles')
       .select('id, operator_name, points, score, solo_solves_count, unlocked_level, completed_levels, achievements, min_sanity_recorded, updated_at')
@@ -686,6 +689,7 @@ export async function handleGetLeaderboard(limit = 50, env = process.env) {
     let fetchedRows = dbRows;
 
     if (error) {
+      console.warn('[Leaderboard] Primary query error:', error.message, '— trying fallback by score...');
       // Fallback if 'points' column is pending migration, query by 'score'
       const { data: fallbackRows, error: fbErr } = await supabase
         .from('profiles')
@@ -695,34 +699,38 @@ export async function handleGetLeaderboard(limit = 50, env = process.env) {
 
       if (!fbErr && fallbackRows && fallbackRows.length > 0) {
         fetchedRows = fallbackRows;
+        console.log('[Leaderboard] Fallback query succeeded, got', fallbackRows.length, 'rows');
       } else {
-        console.warn('Notice: leaderboard profiles query error, using baseline roster:', fbErr?.message || error?.message);
+        console.warn('[Leaderboard] Both queries failed, using baseline roster:', fbErr?.message || error?.message);
         fetchedRows = null;
       }
+    } else {
+      console.log('[Leaderboard] Supabase returned', (dbRows || []).length, 'profile rows');
     }
 
-    if (!fetchedRows || fetchedRows.length === 0) {
-      const defaultList = formatLeaderboardList(BASELINE_OPERATORS, maxLimit);
-      return { leaderboard: defaultList, totalOperators: defaultList.length, status: 200 };
-    }
+    // Always merge with baseline operators — even if DB returned rows or is empty
+    const dbEntries = (fetchedRows && fetchedRows.length > 0) ? fetchedRows : [];
+    source = dbEntries.length > 0 ? 'supabase+baseline' : 'baseline';
 
-    // Merge database rows with baseline operatives, avoiding duplicate names
-    const existingNames = new Set(fetchedRows.map((r) => (r.operator_name || '').toUpperCase()));
+    const existingNames = new Set(dbEntries.map((r) => (r.operator_name || '').toUpperCase()));
     const nonDuplicatedBaselines = BASELINE_OPERATORS.filter(
       (b) => !existingNames.has(b.operator_name.toUpperCase())
     );
 
-    const merged = [...fetchedRows, ...nonDuplicatedBaselines];
+    const merged = [...dbEntries, ...nonDuplicatedBaselines];
     const formatted = formatLeaderboardList(merged, maxLimit);
+
+    console.log(`[Leaderboard] Returning ${formatted.length} entries (source: ${source}, db: ${dbEntries.length}, baselines: ${nonDuplicatedBaselines.length})`);
 
     return {
       leaderboard: formatted,
       totalOperators: formatted.length,
+      source,
       status: 200,
     };
   } catch (err) {
-    console.warn('Leaderboard fetch error, utilizing baseline roster:', err?.message);
+    console.warn('[Leaderboard] Fetch error, utilizing baseline roster:', err?.message);
     const defaultList = formatLeaderboardList(BASELINE_OPERATORS, maxLimit);
-    return { leaderboard: defaultList, totalOperators: defaultList.length, status: 200 };
+    return { leaderboard: defaultList, totalOperators: defaultList.length, source: 'baseline-error', status: 200 };
   }
 }
