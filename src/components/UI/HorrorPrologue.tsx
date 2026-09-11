@@ -181,7 +181,7 @@ const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       <header className="prologue-top-bar">
         <div className="prologue-tag">
           <span className={`pulse-red-led ${isDoorSlammed ? 'rapid' : ''}`}></span>
-          <span>INCIDENT FILE // RECON_09 // PROLOGUE</span>
+          <span><span className="hidden-xs">INCIDENT FILE // </span>RECON_09 // PROLOGUE</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -195,7 +195,7 @@ const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
           >
             {isFullscreen ? <Minimize size={12} /> : <Maximize size={12} />}
-            <span>{isFullscreen ? 'WINDOW' : 'FULLSCREEN'}</span>
+            <span><span className="hidden-xs">{isFullscreen ? 'WINDOW' : 'FULLSCREEN'}</span><span className="visible-xs">{isFullscreen ? 'EXIT' : 'FULL'}</span></span>
           </button>
 
           <button
@@ -206,7 +206,7 @@ const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
               onComplete();
             }}
           >
-            <span>SKIP NARRATIVE</span>
+            <span><span className="hidden-xs">SKIP </span>NARRATIVE</span>
             <ArrowRight size={13} />
           </button>
         </div>

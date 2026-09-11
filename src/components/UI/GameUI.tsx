@@ -41,6 +41,7 @@ import {
   playTerminalBlip,
 } from '../../utils/soundEffects';
 import { TOTAL_LEVELS } from '../../data/levels';
+import { isTouchCapableDevice } from '../../utils/mobileInput';
 
 export const GameUI: React.FC = () => {
   const {
@@ -117,6 +118,7 @@ export const GameUI: React.FC = () => {
   // Live Sector Speedrun Timer
   const [timerDisplay, setTimerDisplay] = useState('00:00.0');
   const [finalSolveStats, setFinalSolveStats] = useState<{ timeStr: string; isRecord: boolean } | null>(null);
+  const isTouchScreen = typeof window !== 'undefined' && (isTouchCapableDevice() || window.innerWidth <= 1024);
 
   useEffect(() => {
     if (escaped) return;
@@ -596,7 +598,8 @@ export const GameUI: React.FC = () => {
 
         {hoveredObject && !activePuzzleId && (
           <div className="luto-hover-whisper">
-            [ E ] INSPECT <span style={{ color: '#fff', fontWeight: 600 }}>{hoveredObject}</span>
+            {isTouchScreen ? '[ TAP INSPECT ] ' : '[ E ] INSPECT '}
+            <span style={{ color: '#fff', fontWeight: 600 }}>{hoveredObject}</span>
           </div>
         )}
 

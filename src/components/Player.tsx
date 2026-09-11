@@ -217,7 +217,7 @@ export const Player = () => {
     }
   });
 
-  const isMobile = typeof window !== 'undefined' && isTouchCapableDevice() && window.innerWidth <= 1024;
+  const isMobile = typeof window !== 'undefined' && (isTouchCapableDevice() || window.innerWidth <= 1024);
 
   return (
     <>
