@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DARK ABYSS - Game Documentation & README</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Cinzel:wght@600;700&display=swap');
+
+    @page {
+      size: A4;
+      margin: 18mm 16mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1e293b;
+      background: #ffffff;
+      line-height: 1.6;
+      font-size: 13px;
+      padding: 0;
+    }
+
+    header {
+      text-align: center;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .title {
+      font-family: 'Cinzel', serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #b91c1c;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .quote {
+      font-style: italic;
+      color: #475569;
+      font-size: 12.5px;
+      max-width: 620px;
+      margin: 0 auto 12px;
+      line-height: 1.5;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    .badge.red { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    .badge.blue { background: #e0f2fe; color: #075985; border-color: #7dd3fc; }
+    .badge.green { background: #dcfce7; color: #166534; border-color: #86efac; }
+    .badge.purple { background: #f3e8ff; color: #6b21a8; border-color: #d8b4fe; }
+
+    h2 {
+      font-size: 17px;
+      color: #0f172a;
+      border-bottom: 1.5px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      font-weight: 700;
+      page-break-after: avoid;
+    }
+
+    h3 {
+      font-size: 14px;
+      color: #1e293b;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: #334155;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 12px;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    strong {
+      color: #0f172a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px;
+      font-size: 12px;
+      page-break-inside: avoid;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 7px 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: #f1f5f9;
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 14px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 10px 0 14px;
+      line-height: 1.45;
+      page-break-inside: avoid;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: inherit;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+      page-break-inside: avoid;
+    }
+
+    .feature-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid #b91c1c;
+      padding: 10px 12px;
+      border-radius: 4px;
+    }
+
+    .feature-card h4 {
+      font-size: 13px;
+      color: #0f172a;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .feature-card p {
+      font-size: 11.5px;
+      color: #475569;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title">DARK ABYSS</div>
+    <div class="subtitle">3D Psychological Horror Coding Escape Room & Adaptive CS Learning Platform</div>
+    <div class="quote">
+      "The building has been empty for nine years. You came down here to steal a hard drive. The door locked behind you. Somewhere in the dark, a machine is still running — and it has been waiting a very long time for someone to talk to."
+    </div>
+    <div class="badges">
+      <span class="badge blue">Vite 8.2 & React 19</span>
+      <span class="badge red">Three.js & Rapier 3D Physics</span>
+      <span class="badge green">Groq Llama 3.3 70B & GPT-OSS 120B</span>
+      <span class="badge purple">Supabase Cloud Auth & Leaderboard</span>
+      <span class="badge">MIT License</span>
+    </div>
+  </header>
+
+  <h2>1. Executive Summary & Overview</h2>
+  <p>
+    <strong>Dark Abyss</strong> is an immersive pedagogical escape room designed to test real-world computer science fundamentals through psychological tension. Players explore an atmospheric underground laboratory (<em>"Schrödinger's Abyss"</em>), inspect physics-driven terminal props, solve algorithmic decryption tasks in an integrated code execution REPL sandbox, and regulate heart-rate telemetry while surviving pursuit by an anomaly entity (<em>Sadako</em>).
+  </p>
+  <p>
+    The game dynamically scales challenge difficulty across five standardized academic computer science domains in real time, factoring in code syntax errors, solve velocity, and hint reliance.
+  </p>
+
+  <h2>2. Key Innovations & Technical Features</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>AI Dynamic Puzzle Engine</h4>
+      <p>Instant inference powered by Groq (<code>openai/gpt-oss-120b</code> & <code>llama-3.3-70b-versatile</code>). Dynamically generates unique contextual escape puzzles tailored to operator performance with sub-second response times.</p>
+    </div>
+    <div class="feature-card">
+      <h4>6-Key Failover Rotator Pool</h4>
+      <p>Multi-key round-robin management across 6 independent Groq keys. Automatically recovers from 429 TPM/RPM rate limits by hot-swapping active keys with zero player disruption.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Solo Solve Scoring & Telemetry</h4>
+      <p>+25% score multiplier awarded for unassisted independent solves. Awards precision bonuses for zero syntax errors, sub-45s speed records, and high cognitive sanity preservation (≥ 80%).</p>
+    </div>
+    <div class="feature-card">
+      <h4>Dual-Mode Cloud Leaderboard</h4>
+      <p>Real-time player standings powered by Supabase with automatic direct REST API fallback for static hostings (Vercel/Netlify). Ranked by Top Score, Solo Purists, and Sanity Masters.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Full Mobile & Touch Controls</h4>
+      <p>Dual touch controls featuring a virtual movement joystick, touch swipe camera controls, and dedicated HUD interaction triggers optimized for mobile and tablet landscape.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Psychological Sanity System</h4>
+      <p>Dynamic sanity gauge (0–100) tied to a procedural Web Audio heartbeat synthesizer (72–152 BPM), triggering camera grain, chromatic aberration, and subliminal apparitions.</p>
+    </div>
+  </div>
+
+  <h2>3. Computer Science Curriculum Domains</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 32%;">Curriculum Domain</th>
+        <th>Technical Focus & Core Competencies</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Programming Fundamentals</strong></td>
+        <td>Lexical scoping, closure captures, type coercion, recursion depth, stack frames, core data structures.</td>
+      </tr>
+      <tr>
+        <td><strong>Control Flow & Logic</strong></td>
+        <td>Loop invariants, off-by-one boundary traps, deterministic finite automata (DFA), state machine transitions.</td>
+      </tr>
+      <tr>
+        <td><strong>Web Security & APIs</strong></td>
+        <td>SQL injection vectors, Cross-Site Scripting (XSS), JWT signature validation, REST idempotency, CORS policies.</td>
+      </tr>
+      <tr>
+        <td><strong>Frontend Engineering</strong></td>
+        <td>React 19 fiber reconciliation, useEffect lifecycle dependencies, state memoization, virtual DOM scheduling.</td>
+      </tr>
+      <tr>
+        <td><strong>Networking & Cryptography</strong></td>
+        <td>Regex token matching, CIDR subnetting, cryptographic hashing (SHA-256), Zero-Knowledge proof protocols.</td>
+      </tr>
+      <tr>
+        <td><strong>Systems & Performance</strong></td>
+        <td>Manual heap allocation (<code>malloc</code>/<code>free</code>), memory leak profiling, race conditions, mutex locks, Big-O.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <h2>4. Control Schemas</h2>
+
+  <h3>Desktop Keyboard & Mouse</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 35%;">Action</th>
+        <th>Input</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Movement</strong></td><td><code>W</code>, <code>A</code>, <code>S</code>, <code>D</code></td></tr>
+      <tr><td><strong>Look / Turn</strong></td><td><code>Mouse Aim</code> (Click viewport for Pointer Lock)</td></tr>
+      <tr><td><strong>Interact / Hack Terminal</strong></td><td><code>E</code> or <code>Left Click</code> (when targeting interactive terminal)</td></tr>
+      <tr><td><strong>Toggle Flashlight</strong></td><td><code>F</code></td></tr>
+      <tr><td><strong>Jump</strong></td><td><code>Spacebar</code></td></tr>
+      <tr><td><strong>Pause / Dismiss Modal</strong></td><td><code>Escape</code> or <code>Q</code></td></tr>
+      <tr><td><strong>Execute Code in REPL</strong></td><td><code>[ RUN ]</code> button inside terminal editor</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Mobile & Tablet Touch HUD</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 35%;">Action</th>
+        <th>Touch Gesture</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Movement</strong></td><td>Left Screen Floating Joystick</td></tr>
+      <tr><td><strong>Look / Camera Aim</strong></td><td>Right Screen Touch Swipe Surface</td></tr>
+      <tr><td><strong>Interact / Terminal Access</strong></td><td>Diegetic <code>[ INTERACT ]</code> Touch Button</td></tr>
+      <tr><td><strong>Toggle Light</strong></td><td>Diegetic <code>[ LIGHT ]</code> Touch Button</td></tr>
+      <tr><td><strong>Jump Action</strong></td><td>Diegetic <code>[ JUMP ]</code> Touch Button</td></tr>
+      <tr><td><strong>Fullscreen Mode</strong></td><td>Tap <code>[ FULLSCREEN ]</code> in Navigation Bar</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5. Architecture & Technology Stack</h2>
+  <ul>
+    <li><strong>Client Architecture:</strong> Vite 8, React 19, TypeScript, Zustand global store (<code>gameStore</code> & <code>authStore</code>).</li>
+    <li><strong>3D Graphics & Physics:</strong> Three.js, React Three Fiber (R3F), Drei helper library, Rapier Physics engine.</li>
+    <li><strong>AI Infrastructure:</strong> Groq Cloud API with automated 6-key rotational failover and JSON schema enforcement.</li>
+    <li><strong>Cloud Database & Storage:</strong> Supabase PostgreSQL (custom <code>profiles</code> table, RLS security policies, and <code>generated_questions</code> database).</li>
+    <li><strong>Deployment:</strong> Continuous deployment on Vercel with zero-backend direct REST API client fallbacks.</li>
+  </ul>
+
+  <h2>6. Quick Start & Setup Guide</h2>
+  <pre><code># 1. Clone the repository
+git clone https://github.com/Asmit-64bit/Dark-Abyss.git
+cd Dark-Abyss
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment variables (.env)
+PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_API_KEY=gsk_...
+
+# 4. Run local development server
+npm run dev
+
+# 5. Build for production
+npm run build</code></pre>
+
+  <h2>7. Database Migrations & Seeds</h2>
+  <ul>
+    <li><code>supabase/schema.sql</code>: Table definitions, RLS access policies, automated registration triggers.</li>
+    <li><code>supabase/seed_leaderboard.sql</code>: 10 baseline facility NPC operators with nullable credential constraints.</li>
+    <li><code>supabase/seed_questions.sql</code>: 70+ curated academic challenges across all 5 curriculum domains.</li>
+  </ul>
+
+  <h2>8. License & Acknowledgments</h2>
+  <p>
+    Licensed under the <strong>MIT License</strong>. Developed as a modern prototype bridging 3D interactive horror mechanics with adaptive computing education.
+  </p>
+
+</body>
+</html>
