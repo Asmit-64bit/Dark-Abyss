@@ -1,0 +1,182 @@
+import type { Puzzle } from './puzzles';
+
+export const domainSpecificPuzzles: Record<string, Record<number, Puzzle>> = {
+  'Data Structures & Algorithms': {
+    1: {
+      id: 1,
+      level: 1,
+      title: "The Graph Traversal Cipher",
+      scenario: "The computer is locked. A corrupted node matrix is displayed.",
+      question: "Which common algorithm uses a queue data structure to explore nodes level-by-level?",
+      answer: ["bfs", "breadth first search", "breadth-first search"],
+      reward: "Gold Key",
+      hint: "It searches 'broadly' rather than going 'deep' first.",
+      debrief: {
+        domain: "Data Structures & Algorithms",
+        difficulty: "Easy",
+        keyTakeaway: "BFS uses a Queue (FIFO) while DFS uses a Stack (LIFO).",
+        realWorldImpact: "Used in shortest path algorithms, network routing, and crawling search engines.",
+      },
+    },
+    2: {
+      id: 2,
+      level: 1,
+      title: "The Infinite Tree Trap",
+      scenario: "The drawer is secured by a recursive traversal algorithm.",
+      question: "The lock won't open because the recursion never stops. What is missing in the recursive function?",
+      codeSnippet: "function traverse(node) {\n  // missing code here\n  traverse(node.left);\n  traverse(node.right);\n}",
+      answer: ["base case", "base condition", "if (!node) return;", "if(node === null) return;", "termination condition"],
+      reward: "Master Key",
+      hint: "Recursive functions must have a condition that stops them from calling themselves infinitely.",
+      debrief: {
+        domain: "Data Structures & Algorithms",
+        difficulty: "Easy",
+        keyTakeaway: "Recursion requires a base case to prevent stack overflow.",
+        realWorldImpact: "Unbounded recursion leads to Call Stack Exceeded errors, crashing the process.",
+        remediationCode: "function traverse(node) {\n  if (!node) return; // Base case\n  traverse(node.left);\n  traverse(node.right);\n}",
+      },
+    }
+  },
+  'React & Frontend Architecture': {
+    1: {
+      id: 1,
+      level: 1,
+      title: "The State Anomaly",
+      scenario: "The console displays a React component that isn't updating correctly.",
+      question: "In React, what hook is used to add local state to functional components?",
+      answer: ["usestate", "usestate()", "use state"],
+      reward: "Gold Key",
+      hint: "It returns an array with two elements: the current state and a function to update it.",
+      debrief: {
+        domain: "React & Frontend Architecture",
+        difficulty: "Easy",
+        keyTakeaway: "useState is the fundamental hook for reactivity in functional React components.",
+        realWorldImpact: "Mutating variables directly won't trigger re-renders, causing the UI to desync from data.",
+      },
+    },
+    2: {
+      id: 2,
+      level: 1,
+      title: "The Infinite Re-render Trap",
+      scenario: "The terminal is frozen because of a dependency cycle.",
+      question: "What array must be passed as the second argument to useEffect to ensure it only runs once on mount?",
+      codeSnippet: "useEffect(() => {\n  fetchData();\n} /* WHAT GOES HERE? */);",
+      answer: ["[]", "empty array", "[,]"],
+      reward: "Master Key",
+      hint: "It represents that this effect has zero dependencies.",
+      debrief: {
+        domain: "React & Frontend Architecture",
+        difficulty: "Easy",
+        keyTakeaway: "Omitting the dependency array causes useEffect to run after EVERY render.",
+        realWorldImpact: "Missing dependency arrays can cause infinite network requests, DDoS-ing your own backend.",
+        remediationCode: "useEffect(() => {\n  fetchData();\n}, []); // Empty dependency array",
+      },
+    }
+  },
+  'Cybersecurity & Cryptography': {
+    1: {
+      id: 1,
+      level: 1,
+      title: "The Hash Cipher",
+      scenario: "The computer is locked, asking to verify a file's integrity.",
+      question: "What one-way mathematical function transforms input data into a fixed-size string of characters to verify integrity?",
+      answer: ["hash", "hashing", "hash function"],
+      reward: "Gold Key",
+      hint: "Common algorithms include SHA-256 and MD5.",
+      debrief: {
+        domain: "Cybersecurity & Cryptography",
+        difficulty: "Easy",
+        keyTakeaway: "Hashes are one-way functions crucial for password storage and data integrity.",
+        realWorldImpact: "Storing passwords in plain text leads to massive credential leaks during breaches.",
+      },
+    },
+    2: {
+      id: 2,
+      level: 1,
+      title: "The Plaintext Trap",
+      scenario: "A drawer intercepts your password, but the system flags it as insecure.",
+      question: "What random data should be added to a password before hashing to defend against rainbow table attacks?",
+      answer: ["salt", "salting"],
+      reward: "Master Key",
+      hint: "It's something you add to food to change its flavor.",
+      debrief: {
+        domain: "Cybersecurity & Cryptography",
+        difficulty: "Easy",
+        keyTakeaway: "Salting ensures that two users with the same password have different hashes.",
+        realWorldImpact: "Without salts, attackers can use precomputed 'rainbow tables' to instantly crack billions of hashes.",
+        remediationCode: "const salt = crypto.randomBytes(16);\nconst hash = pbkdf2Sync(password, salt, 1000, 64, 'sha512');",
+      },
+    }
+  },
+  'Python & Backend Systems': {
+    1: {
+      id: 1,
+      level: 1,
+      title: "The Syntax Cipher",
+      scenario: "The computer is locked. You find a corrupted Python script on the screen.",
+      question: "What single character is missing to make this Python code compile?",
+      codeSnippet: "def greet(name)\n    return 'Hello ' + name",
+      answer: [":", ": "],
+      reward: "Gold Key",
+      hint: "In Python, compound statements like function definitions require a delimiter before the indented block.",
+      debrief: {
+        domain: "Python & Backend Systems",
+        difficulty: "Easy",
+        keyTakeaway: "Python block definitions require a colon (:) to define the start of an indented suite.",
+        realWorldImpact: "Syntax errors crash the interpreter immediately.",
+        remediationCode: "def greet(name):\n    return 'Hello ' + name",
+      },
+    },
+    2: {
+      id: 2,
+      level: 1,
+      title: "The Blocking Trap",
+      scenario: "The server is unresponsive because it is processing one request at a time.",
+      question: "In Node.js or Python asyncio, what keyword is used to pause execution until a Promise/Task resolves, freeing up the thread?",
+      answer: ["await"],
+      reward: "Master Key",
+      hint: "It is always used inside an 'async' function.",
+      debrief: {
+        domain: "Python & Backend Systems",
+        difficulty: "Easy",
+        keyTakeaway: "The 'await' keyword yields control back to the event loop while waiting for I/O.",
+        realWorldImpact: "Synchronous blocking I/O freezes the server, crippling concurrency and scaling.",
+        remediationCode: "async def fetch_data():\n    data = await db.query('SELECT *')\n    return data",
+      },
+    }
+  },
+  'DevOps & Cloud Infrastructure': {
+    1: {
+      id: 1,
+      level: 1,
+      title: "The Container Cipher",
+      scenario: "The computer is locked. The deployment logs show an image build failure.",
+      question: "What file contains the instructions to build a Docker image?",
+      answer: ["dockerfile", "docker file"],
+      reward: "Gold Key",
+      hint: "It usually starts with a FROM instruction.",
+      debrief: {
+        domain: "DevOps & Cloud Infrastructure",
+        difficulty: "Easy",
+        keyTakeaway: "A Dockerfile is the blueprint for containerizing an application.",
+        realWorldImpact: "Containerization guarantees consistency across dev, staging, and production environments.",
+      },
+    },
+    2: {
+      id: 2,
+      level: 1,
+      title: "The Orchestration Trap",
+      scenario: "A container crashed and didn't restart, locking the system.",
+      question: "What popular open-source system automates deployment, scaling, and management of containerized applications?",
+      answer: ["kubernetes", "k8s"],
+      reward: "Master Key",
+      hint: "Its logo is a ship's steering wheel.",
+      debrief: {
+        domain: "DevOps & Cloud Infrastructure",
+        difficulty: "Easy",
+        keyTakeaway: "Kubernetes orchestrates containers across clusters of machines.",
+        realWorldImpact: "Without orchestration, managing thousands of microservices and ensuring high availability is impossible.",
+      },
+    }
+  }
+};

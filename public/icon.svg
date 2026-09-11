@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <defs>
+    <!-- Visceral bone gradient -->
+    <linearGradient id="visceral-bone" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#ff2a2a"/>
+      <stop offset="25%" stop-color="#cc0000"/>
+      <stop offset="70%" stop-color="#7a0000"/>
+      <stop offset="100%" stop-color="#330000"/>
+    </linearGradient>
+
+    <!-- Dark shadow tone -->
+    <linearGradient id="cavity-shadow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#000000"/>
+      <stop offset="100%" stop-color="#1a0002"/>
+    </linearGradient>
+
+    <!-- Glint highlight -->
+    <linearGradient id="rim-light" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="50%" stop-color="#ff1a1a"/>
+      <stop offset="100%" stop-color="#730000"/>
+    </linearGradient>
+
+    <!-- Dread glow filter -->
+    <filter id="horror-aura" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="1.2" flood-color="#ff0000" flood-opacity="0.85"/>
+    </filter>
+  </defs>
+
+  <!-- Skull Silhouette & Anatomy Only (Transparent Background) -->
+  <g filter="url(#horror-aura)">
+    <!-- Cranium / Forehead Bone Mass with Anatomical Contours -->
+    <path d="
+      M 32,3
+      C 45,3 53,12 53,24
+      C 53,30 50,36 47,38
+      C 49,41 50,45 45,46
+      C 43,46 42,43 40,43
+      C 39,47 38,51 37,54
+      C 36,58 34,61 32,61
+      C 30,61 28,58 27,54
+      C 26,51 25,47 24,43
+      C 22,43 21,46 19,46
+      C 14,45 15,41 17,38
+      C 14,36 11,30 11,24
+      C 11,12 19,3 32,3 Z"
+      fill="url(#visceral-bone)"/>
+
+    <!-- Temporal & Forehead Bone Highlights / Ridges -->
+    <path d="M 17,17 C 21,9 29,6 32,6 C 35,6 43,9 47,17" 
+          stroke="url(#rim-light)" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.9"/>
+    <path d="M 23,11 C 26,8 31,7 32,7" 
+          stroke="#ff8080" stroke-width="0.9" fill="none" opacity="0.95"/>
+
+    <!-- Menacing Heavy Supraorbital Brow Ridge (Angry V-shape) -->
+    <path d="M 13,24 C 19,21 26,24 32,27 C 38,24 45,21 51,24 C 48,26 45,27 39,27 C 32,28 32,28 25,27 C 19,27 16,26 13,24 Z"
+          fill="#ff2222"/>
+
+    <!-- Deep Jagged Cranial Fissures (Cracks of Torment) -->
+    <path d="M 32,3 L 30,10 L 34,14 L 29,19 L 31,25" 
+          stroke="#000000" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M 34,14 L 39,16 L 43,22" 
+          stroke="#000000" stroke-width="0.8" stroke-linecap="round" fill="none"/>
+    <path d="M 20,11 L 17,15 L 18,20" 
+          stroke="#1f0000" stroke-width="0.8" fill="none"/>
+
+    <!-- Sunken Cheekbone Hollows (Zygomatic shadows) -->
+    <path d="M 12,32 C 16,33 18,37 17,41 C 14,39 12,36 12,32 Z" fill="url(#cavity-shadow)"/>
+    <path d="M 52,32 C 48,33 46,37 47,41 C 50,39 52,36 52,32 Z" fill="url(#cavity-shadow)"/>
+
+    <!-- Terrifying Deep Sunken Eye Sockets (Slanted Predatory Void) -->
+    <!-- Left Eye Socket -->
+    <path d="M 15,26 C 21,25 27,28 28,32 C 29,37 25,41 20,41 C 16,41 13,35 14,29 C 14,27 14,26 15,26 Z" 
+          fill="url(#cavity-shadow)"/>
+    <path d="M 17,27 C 22,26 26,29 27,32 C 27,36 23,39 20,39 C 17,39 15,34 16,29 Z" 
+          fill="#000000"/>
+
+    <!-- Right Eye Socket -->
+    <path d="M 49,26 C 43,25 37,28 36,32 C 35,37 39,41 44,41 C 48,41 51,35 50,29 C 50,27 50,26 49,26 Z" 
+          fill="url(#cavity-shadow)"/>
+    <path d="M 47,27 C 42,26 38,29 37,32 C 37,36 41,39 44,39 C 47,39 49,34 48,29 Z" 
+          fill="#000000"/>
+
+    <!-- Glowing Demonic Needle Pupils (Piercing Gaze in Deep Darkness) -->
+    <circle cx="22" cy="33" r="1.4" fill="#ff0000"/>
+    <circle cx="22" cy="33" r="0.7" fill="#ffffff"/>
+    <circle cx="42" cy="33" r="1.4" fill="#ff0000"/>
+    <circle cx="42" cy="33" r="0.7" fill="#ffffff"/>
+
+    <!-- Menacing Sharp Nasal Bone Cavity -->
+    <path d="M 32,33 L 29.5,42 L 32,40 L 34.5,42 Z" fill="#000000"/>
+    <path d="M 31,35 L 30.5,41 L 32,39.5 L 33.5,41 L 33,35 Z" fill="#140001"/>
+
+    <!-- Upper Maxilla Arch / Snarl Shadow -->
+    <path d="M 22,43 C 26,41 38,41 42,43 C 40,45 24,45 22,43 Z" fill="#140001"/>
+
+    <!-- Predatory Sharp Serrated Teeth & Open Void Maw -->
+    <!-- Dark Inner Maw Abyss -->
+    <path d="M 23,45 C 27,44 37,44 41,45 C 40,52 38,56 32,57 C 26,56 24,52 23,45 Z" fill="#000000"/>
+
+    <!-- Upper Jagged Fangs -->
+    <polygon points="24,44 25.5,49 26.5,44" fill="#ff3b3b"/>
+    <polygon points="26.5,44 28,51 29.5,44" fill="#ff5c5c"/>
+    <polygon points="29.5,44 32,53 34.5,44" fill="#ffffff"/>
+    <polygon points="34.5,44 36,51 37.5,44" fill="#ff5c5c"/>
+    <polygon points="37.5,44 38.5,49 40,44" fill="#ff3b3b"/>
+
+    <!-- Lower Interlocking Jagged Fangs -->
+    <polygon points="25,55 26.5,48 28,55" fill="#d62020"/>
+    <polygon points="28,56 29.5,47 32,56" fill="#ff4747"/>
+    <polygon points="32,56 34.5,47 36,56" fill="#ff4747"/>
+    <polygon points="36,55 37.5,48 39,55" fill="#d62020"/>
+
+    <!-- Mandible Chin Base Structure -->
+    <path d="M 27,54 C 29,57 35,57 37,54 C 36,58.5 34,60.5 32,60.5 C 30,60.5 28,58.5 27,54 Z" fill="#610000"/>
+
+    <!-- Bone highlights on jaw -->
+    <path d="M 27,55 Q 32,61 37,55" stroke="#ff2a2a" stroke-width="0.9" fill="none" opacity="0.8"/>
+  </g>
+</svg>
