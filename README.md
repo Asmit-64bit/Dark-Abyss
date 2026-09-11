@@ -1,4 +1,4 @@
-# 🎮 DARK ABYSS
+# 🎮 ABYSS
 
 <div align="center">
 
@@ -21,7 +21,7 @@
 
 ## 📖 Overview
 
-**Dark Abyss** merges first-person 3D atmospheric horror with technical computer science challenges. Players explore an abandoned subterranean research laboratory (*"Schrödinger's Abyss"*), examine physics-based props, hack retro CRT terminals, write and evaluate algorithms in an integrated REPL sandbox, and preserve cognitive sanity while pursued by an anomalous entity (*Sadako*).
+**Abyss** merges first-person 3D atmospheric horror with technical computer science challenges. Players explore an abandoned subterranean research laboratory (*"Schrödinger's Abyss"*), examine physics-based props, hack retro CRT terminals, write and evaluate algorithms in an integrated REPL sandbox, and preserve cognitive sanity while pursued by an anomalous entity (*Sadako*).
 
 The platform dynamically adapts its curriculum difficulty in real time based on speed, hint reliance, and code execution errors.
 
@@ -163,7 +163,7 @@ npm run start
 ```
 
 ### Deploying to Vercel / Netlify
-Dark Abyss is fully optimized for static single-page deployments. When deployed on Vercel or Netlify without a Node.js backend:
+Abyss is fully optimized for static single-page deployments. When deployed on Vercel or Netlify without a Node.js backend:
 - Leaderboard queries seamlessly fall back to direct Supabase REST requests using your public anon key.
 - Offline and connection drops are gracefully absorbed by the bundled baseline roster.
 
@@ -172,7 +172,7 @@ Dark Abyss is fully optimized for static single-page deployments. When deployed 
 ## 🏗️ Architecture & Project Structure
 
 ```
-Dark-Abyss/
+Abyss/
 ├── public/                 # 3D GLTF models, audio files, textures, horror assets
 ├── server/                 # Backend services & proxies
 │   ├── groqKeyPool.js      # 6-Key Groq API failover rotator
