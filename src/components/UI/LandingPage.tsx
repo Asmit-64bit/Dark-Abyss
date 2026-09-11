@@ -7,8 +7,9 @@ import { ProfileDashboard } from './ProfileDashboard';
 import { AuthModal } from './AuthModal';
 import { LeaderboardModal } from './LeaderboardModal';
 import { ACHIEVEMENTS } from '../../data/achievements';
-import { Trophy, X, ArrowRight, Activity, BookOpen, Eye, User, Cloud, CloudOff, Play, ShieldAlert, Key, AlertTriangle } from 'lucide-react';
+import { Trophy, X, ArrowRight, Activity, BookOpen, Eye, User, Cloud, CloudOff, Play, ShieldAlert, Key, AlertTriangle, Maximize, Minimize } from 'lucide-react';
 import { playTerminalBlip } from '../../utils/soundEffects';
+import { useFullscreen, requestFullscreen } from '../../utils/fullscreen';
 
 const SADAKO_WHISPERS = [
   '7 DAYS',
@@ -35,6 +36,7 @@ export const LandingPage: React.FC = () => {
   } = useGameStore();
 
   const { user, initializeAuth } = useAuthStore();
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
   const [showPrologue, setShowPrologue] = useState(true);
   const [showRecords, setShowRecords] = useState(false);
@@ -162,13 +164,13 @@ export const LandingPage: React.FC = () => {
       {/* Main Title Interface */}
       <div className="title-screen-container">
         {/* Top Status Tag & Navigation */}
-        <div className="title-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <div className="title-header-bar">
           <div className="title-top-badge">
             <span className="luto-pulse-dot" />
             <span>CASE FILE // INCIDENT_04-A // SADAKO CURSE</span>
           </div>
 
-          <div className="title-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="title-nav-actions">
             <button
               type="button"
               onClick={() => handleButtonClick(() => setShowPrologue(true))}
@@ -212,6 +214,17 @@ export const LandingPage: React.FC = () => {
 
             <button
               type="button"
+              onClick={() => handleButtonClick(() => void toggleFullscreen())}
+              className="carousel-nav-link"
+              style={{ color: isFullscreen ? '#38bdf8' : 'inherit' }}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen (Mobile & Tablet Immersion)'}
+            >
+              {isFullscreen ? <Minimize size={13} color="#38bdf8" /> : <Maximize size={13} />}
+              <span><span className="hidden-xs">{isFullscreen ? 'WINDOWED' : 'FULLSCREEN'}</span><span className="visible-xs">{isFullscreen ? 'EXIT' : 'FULL'}</span></span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => handleButtonClick(() => setProfileModalOpen(true))}
               className="carousel-nav-link profile-header-trigger-btn"
               title="Open Operator Profile & Clearance Dossier"
@@ -250,7 +263,10 @@ export const LandingPage: React.FC = () => {
             <button
               type="button"
               className="title-menu-btn primary-btn"
-              onClick={() => handleButtonClick(() => setAppState('DOMAIN_SELECT'))}
+              onClick={() => {
+                void requestFullscreen();
+                handleButtonClick(() => setAppState('DOMAIN_SELECT'));
+              }}
             >
               <span>{hasProgress ? 'RESUME THE CONFRONTATION' : 'STEP INTO ABYSS'}</span>
               <ArrowRight size={14} />
@@ -259,7 +275,10 @@ export const LandingPage: React.FC = () => {
             <button
               type="button"
               className="title-menu-btn"
-              onClick={() => handleButtonClick(() => setAppState('DOMAIN_SELECT'))}
+              onClick={() => {
+                void requestFullscreen();
+                handleButtonClick(() => setAppState('DOMAIN_SELECT'));
+              }}
             >
               <span>CHAPTER ARCHIVES</span>
               <span style={{ fontSize: '10px', opacity: 0.6, fontFamily: 'monospace' }}>
@@ -282,7 +301,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Bottom Live Incident Ticker */}
         <div className="title-bottom-ticker">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <Activity size={12} color="#dc2626" />
             <span>PULSE: {ghostActive ? '154 BPM' : '72 BPM'}</span>
             <span style={{ opacity: 0.3 }}>|</span>

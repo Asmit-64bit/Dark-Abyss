@@ -22,7 +22,10 @@ import {
   Terminal,
   ShieldCheck,
   Eye,
+  Maximize,
+  Minimize,
 } from 'lucide-react';
+import { useFullscreen } from '../../utils/fullscreen';
 import {
   generateAiPuzzle,
   evaluateAnswerWithAi,
@@ -89,6 +92,8 @@ export const GameUI: React.FC = () => {
     leaderboardModalOpen,
     setLeaderboardModalOpen,
   } = useGameStore();
+
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState('');
@@ -569,6 +574,23 @@ export const GameUI: React.FC = () => {
             <span className="hidden-xs">{flashlightOn ? 'LIGHT [ON]' : 'LIGHT [OFF]'}</span>
             <span className="visible-xs">{flashlightOn ? 'ON' : 'OFF'}</span>
           </button>
+
+          {/* Fullscreen Toggle for Mobile & Tablet */}
+          <button
+            type="button"
+            onClick={() => void toggleFullscreen()}
+            className="carousel-nav-link"
+            style={{
+              padding: '6px 10px',
+              fontSize: '10px',
+              letterSpacing: '0.1em',
+              color: isFullscreen ? '#38bdf8' : '#8b929e',
+            }}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen (Mobile & Tablet)'}
+          >
+            {isFullscreen ? <Minimize size={12} color="#38bdf8" /> : <Maximize size={12} />}
+            <span className="hidden-xs">{isFullscreen ? 'WINDOW' : 'FULL'}</span>
+          </button>
         </div>
       </div>
 
@@ -974,8 +996,8 @@ export const GameUI: React.FC = () => {
                         </div>
                       )}
 
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.25rem' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.25rem', flexWrap: 'wrap', gap: '10px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           <button
                             type="button"
                             onClick={() => {

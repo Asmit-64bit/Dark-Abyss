@@ -38,7 +38,7 @@ function App() {
   }
 
   return (
-    <>
+    <div style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', overflow: 'hidden' }}>
       <HorrorAmbience />
       <GameUI />
       <Canvas shadows camera={{ fov: 75 }}>
@@ -51,7 +51,7 @@ function App() {
           </Physics>
         </React.Suspense>
       </Canvas>
-    </>
+    </div>
   );
 }
 

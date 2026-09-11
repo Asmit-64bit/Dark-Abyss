@@ -36,8 +36,10 @@ export const KnowledgeBaseScreen: React.FC = () => {
   return (
     <div
       style={{
-        position: 'absolute',
+        position: 'fixed',
         inset: 0,
+        width: '100%',
+        minHeight: '100vh',
         backgroundColor: '#040507',
         backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.9), rgba(4, 5, 7, 1))',
         display: 'flex',
@@ -50,6 +52,7 @@ export const KnowledgeBaseScreen: React.FC = () => {
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
         padding: '1.75rem 1rem 3rem',
+        boxSizing: 'border-box',
       }}
     >
       {/* Responsive Top Bar */}

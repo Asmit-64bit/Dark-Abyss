@@ -6,7 +6,8 @@ import {
   playTapeStatic,
   playTerminalBlip
 } from '../../utils/soundEffects';
-import { ArrowRight, Volume2, ShieldAlert } from 'lucide-react';
+import { ArrowRight, Volume2, ShieldAlert, Maximize, Minimize } from 'lucide-react';
+import { useFullscreen, requestFullscreen } from '../../utils/fullscreen';
 
 interface HorrorPrologueProps {
   onComplete: () => void;
@@ -20,6 +21,7 @@ const NARRATION_LINES = [
 ];
 
 export const HorrorPrologue: React.FC<HorrorPrologueProps> = ({ onComplete }) => {
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   const [hasStarted, setHasStarted] = useState(false);
   const [currentLineIndex, setCurrentLineIndex] = useState(-1);
   const [typedText, setTypedText] = useState('');
@@ -131,6 +133,7 @@ const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     setHasStarted(true);
     setCurrentLineIndex(0);
     playTapeStatic(2.0);
+    void requestFullscreen();
   };
 
   const handleAdvance = () => {
@@ -138,6 +141,7 @@ const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       handleStart();
       return;
     }
+    void requestFullscreen();
     if (isTyping) {
       // Skip typing of current line
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
@@ -182,17 +186,32 @@ const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
           <span>INCIDENT FILE // RECON_09 // PROLOGUE</span>
         </div>
 
-        <button
-          type="button"
-          className="prologue-skip-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            onComplete();
-          }}
-        >
-          <span>SKIP NARRATIVE</span>
-          <ArrowRight size={13} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            className="prologue-skip-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              void toggleFullscreen();
+            }}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? <Minimize size={12} /> : <Maximize size={12} />}
+            <span>{isFullscreen ? 'WINDOW' : 'FULLSCREEN'}</span>
+          </button>
+
+          <button
+            type="button"
+            className="prologue-skip-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onComplete();
+            }}
+          >
+            <span>SKIP NARRATIVE</span>
+            <ArrowRight size={13} />
+          </button>
+        </div>
       </header>
 
       {/* Center Stage Narration Experience */}

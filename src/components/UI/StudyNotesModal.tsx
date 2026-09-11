@@ -61,13 +61,13 @@ export const StudyNotesModal: React.FC = () => {
           somewhere in here.
         </p>
 
-        <div className="lore-section-card">
+        <div className="lore-section-card" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <div style={{ fontSize: '11px', letterSpacing: '0.12em', color: '#f4f5f8', fontWeight: 600, marginBottom: '10px' }}>
             COMPLEXITY CHEAT SHEET
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '300px' }}>
             {COMPLEXITY_ROWS.map(([big, name, example]) => (
-              <div key={big} style={{ display: 'grid', gridTemplateColumns: '90px 120px 1fr', gap: '10px', fontSize: '11px' }}>
+              <div key={big} style={{ display: 'grid', gridTemplateColumns: '70px 110px 1fr', gap: '8px', fontSize: '11px' }}>
                 <span style={{ color: '#fbbf24', fontFamily: 'monospace', fontWeight: 600 }}>{big}</span>
                 <span style={{ color: '#cbd5e1' }}>{name}</span>
                 <span style={{ color: '#8b929e' }}>{example}</span>
@@ -76,13 +76,13 @@ export const StudyNotesModal: React.FC = () => {
           </div>
         </div>
 
-        <div className="lore-section-card">
+        <div className="lore-section-card" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <div style={{ fontSize: '11px', letterSpacing: '0.12em', color: '#f4f5f8', fontWeight: 600, marginBottom: '10px' }}>
             DATA STRUCTURE QUICK REFERENCE
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '340px' }}>
             {STRUCTURE_ROWS.map(([name, best, note]) => (
-              <div key={name} style={{ display: 'grid', gridTemplateColumns: '130px 110px 1fr', gap: '10px', fontSize: '11px' }}>
+              <div key={name} style={{ display: 'grid', gridTemplateColumns: '110px 95px 1fr', gap: '8px', fontSize: '11px' }}>
                 <span style={{ color: '#00e5ff', fontWeight: 600 }}>{name}</span>
                 <span style={{ color: '#cbd5e1', fontFamily: 'monospace' }}>{best}</span>
                 <span style={{ color: '#8b929e' }}>{note}</span>

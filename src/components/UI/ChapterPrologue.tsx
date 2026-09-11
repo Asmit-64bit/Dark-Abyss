@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { ArrowRight } from 'lucide-react';
 import { playTerminalBlip, playTapeStatic } from '../../utils/soundEffects';
+import { requestFullscreen } from '../../utils/fullscreen';
 
 interface ChapterPrologueProps {
   onComplete: () => void;
@@ -94,6 +95,7 @@ export const ChapterPrologue: React.FC<ChapterPrologueProps> = ({ onComplete }) 
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
       setCurrentLineIndex(prev => prev + 1);
     } else {
+      void requestFullscreen();
       onComplete();
     }
   };
@@ -127,6 +129,7 @@ export const ChapterPrologue: React.FC<ChapterPrologueProps> = ({ onComplete }) 
                 className="prologue-enter-abyss-btn"
                 onClick={(e) => {
                   e.stopPropagation();
+                  void requestFullscreen();
                   onComplete();
                 }}
               >

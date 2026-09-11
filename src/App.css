@@ -21,6 +21,10 @@
   --luto-blood-bright: #ef4444;
   --luto-blood-glow: rgba(185, 28, 28, 0.55);
   --luto-amber: #d97706;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -53,9 +57,10 @@
 }
 
 body, html, #root {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  width: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
   background-color: var(--luto-void);
   color: var(--luto-bone);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -77,9 +82,12 @@ body, html, #root {
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Scratched Film Noise Grain */
@@ -256,11 +264,29 @@ body, html, #root {
   position: relative;
   z-index: 10;
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 3rem 4.5rem;
+  padding: 2.5rem 3.5rem;
+  box-sizing: border-box;
+}
+
+.title-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.title-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .title-top-badge {
@@ -268,7 +294,7 @@ body, html, #root {
   align-items: center;
   gap: 0.6rem;
   font-size: 10px;
-  letter-spacing: 0.35em;
+  letter-spacing: 0.25em;
   color: var(--luto-muted);
   text-transform: uppercase;
   font-weight: 500;
@@ -384,12 +410,16 @@ body, html, #root {
   align-items: center;
   justify-content: space-between;
   font-size: 10px;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.35);
   text-transform: uppercase;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 1.25rem;
-  padding-right: 16rem;
+  padding-right: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 /* ==========================================================================
@@ -432,13 +462,17 @@ body, html, #root {
 .carousel-page-container {
   position: relative;
   z-index: 10;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 2.5rem 3.5rem;
-  overflow: hidden;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .carousel-top-bar {
@@ -1076,8 +1110,10 @@ body, html, #root {
 .horror-prologue-screen {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   background-color: #000000;
   color: #f1f2f6;
   display: flex;
@@ -1087,7 +1123,9 @@ body, html, #root {
   z-index: 9999;
   cursor: pointer;
   user-select: none;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 
@@ -1179,6 +1217,8 @@ body, html, #root {
   width: 100%;
   position: relative;
   z-index: 10;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .prologue-tag {
@@ -1238,6 +1278,7 @@ body, html, #root {
   max-width: 960px;
   margin: 0 auto;
   width: 100%;
+  padding: 1.5rem 0;
 }
 
 .prologue-start-prompt {
@@ -1246,6 +1287,8 @@ body, html, #root {
   align-items: center;
   text-align: center;
   gap: 1.2rem;
+  width: 100%;
+  max-width: 680px;
 }
 
 .prompt-audio-icon {
@@ -1259,10 +1302,13 @@ body, html, #root {
 
 .prompt-title {
   font-family: 'Cinzel', serif;
-  font-size: 1.8rem;
-  letter-spacing: 0.25em;
+  font-size: clamp(1.15rem, 5vw, 1.8rem);
+  letter-spacing: clamp(0.08em, 1.8vw, 0.22em);
   color: #f1f2f6;
   margin: 0;
+  text-align: center;
+  max-width: 92vw;
+  word-break: break-word;
 }
 
 .prompt-desc {
@@ -1435,12 +1481,15 @@ body, html, #root {
   z-index: 10;
   border-top: 1px solid rgba(45, 48, 62, 0.3);
   padding-top: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .biometric-indicator {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .heart-icon {
@@ -3148,15 +3197,47 @@ body, html, #root {
    LUTO // COMPREHENSIVE RESPONSIVE BREAKPOINTS
    ========================================================================== */
 
+/* Tablet & Large Desktop Resize (max-width: 1150px) */
+@media (max-width: 1150px) {
+  .title-header-bar {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+    width: 100%;
+  }
+
+  .title-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .gate-sadako-anchor {
+    right: 8%;
+    bottom: 14%;
+    transform: scale(0.75);
+    transform-origin: bottom right;
+    pointer-events: none;
+  }
+}
+
 /* Tablet Breakpoint (max-width: 1024px) */
 @media (max-width: 1024px) {
   .title-screen-container {
-    padding: 2rem 2.5rem;
+    padding: 2rem 2rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .title-bottom-ticker {
-    padding-right: 2rem;
+    padding-right: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .chapter-card-slide {
@@ -3173,8 +3254,12 @@ body, html, #root {
   }
 
   .carousel-page-container {
-    padding: 1.75rem 2rem;
+    padding: 1.75rem 1.5rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .lore-dossier-modal,
@@ -3183,42 +3268,25 @@ body, html, #root {
     max-width: 92vw;
     max-height: 88vh;
   }
-
-  .gate-sadako-anchor {
-    right: 12%;
-    bottom: 16%;
-    transform: scale(0.85);
-    transform-origin: bottom right;
-  }
 }
 
 /* Mobile Breakpoint (max-width: 768px) */
 @media (max-width: 768px) {
   .title-screen-container {
-    padding: 1.25rem 1rem;
-    height: 100vh;
+    padding-top: max(1.25rem, var(--sat));
+    padding-bottom: max(1rem, var(--sab));
+    padding-left: max(1rem, var(--sal));
+    padding-right: max(1rem, var(--sar));
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  .title-header-bar {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 0.75rem !important;
-    width: 100%;
-  }
-
   .title-top-badge {
     font-size: 8.5px;
-    letter-spacing: 0.22em;
-  }
-
-  .title-nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    width: 100%;
+    letter-spacing: 0.18em;
   }
 
   .title-hero-content {
@@ -3275,9 +3343,15 @@ body, html, #root {
   }
 
   .carousel-page-container {
-    padding: 1.25rem 0.75rem;
-    height: 100vh;
+    padding-top: max(1.25rem, var(--sat));
+    padding-bottom: max(0.75rem, var(--sab));
+    padding-left: max(0.75rem, var(--sal));
+    padding-right: max(0.75rem, var(--sar));
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .carousel-top-bar {
@@ -3309,7 +3383,10 @@ body, html, #root {
   }
 
   .luto-hud-overlay {
-    padding: 1rem 0.75rem;
+    padding-top: max(1rem, var(--sat));
+    padding-bottom: max(0.75rem, var(--sab));
+    padding-left: max(0.75rem, var(--sal));
+    padding-right: max(0.75rem, var(--sar));
   }
 
   .luto-ekg-card {
@@ -3347,10 +3424,58 @@ body, html, #root {
     bottom: 8%;
     transform: scale(0.62);
     transform-origin: bottom right;
+    pointer-events: none;
   }
 
   .horror-prologue-screen {
-    padding: 1.5rem 1.25rem;
+    padding-top: max(1.25rem, var(--sat));
+    padding-bottom: max(1rem, var(--sab));
+    padding-left: max(1rem, var(--sal));
+    padding-right: max(1rem, var(--sar));
+  }
+
+  .prologue-enter-btn,
+  .prologue-enter-abyss-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    box-sizing: border-box;
+  }
+
+  .prologue-tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+  }
+
+  .prologue-skip-btn {
+    padding: 5px 10px;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+  }
+
+  .history-line {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .active-line {
+    font-size: clamp(1.1rem, 5vw, 1.45rem);
+    line-height: 1.45;
+  }
+
+  .prologue-alert-tag {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    padding: 5px 10px;
+  }
+
+  .prologue-bottom-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.65rem;
   }
 
   .lore-dossier-modal,
@@ -3411,21 +3536,64 @@ body, html, #root {
   }
 }
 
+/* Phones (max-width: 640px) */
+@media (max-width: 640px) {
+  .hidden-xs {
+    display: none !important;
+  }
+
+  .title-nav-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .carousel-nav-link {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 6px 8px;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    min-height: 38px;
+    box-sizing: border-box;
+  }
+
+  .title-menu-group {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .title-menu-btn {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .title-menu-btn-content {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .title-menu-btn-text {
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    word-break: break-word;
+  }
+}
+
 /* Small Phones (max-width: 480px) */
 @media (max-width: 480px) {
   .title-top-badge {
     font-size: 7.5px;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
   }
 
   .title-main-heading {
     font-size: 2.1rem;
-  }
-
-  .carousel-nav-link {
-    padding: 5px 8px;
-    font-size: 9.5px;
-    gap: 0.35rem;
   }
 
   .chapter-meta-row {

@@ -3,7 +3,8 @@ import { useGameStore } from '../../store/gameStore';
 import { LEVELS, TOTAL_LEVELS } from '../../data/levels';
 import { puzzles } from '../../data/puzzles';
 import { BgmPlayer } from './BgmPlayer';
-import { ArrowLeft, ChevronLeft, ChevronRight, Lock, Check, Timer } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Lock, Check, Timer, Maximize, Minimize } from 'lucide-react';
+import { useFullscreen, requestFullscreen } from '../../utils/fullscreen';
 
 const CHAPTER_SUBTITLES = [
   'CHAPTER I // THE CLINICAL COLD',
@@ -14,6 +15,7 @@ const CHAPTER_SUBTITLES = [
 ];
 
 export const LevelSelectRoom: React.FC = () => {
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   const { completedLevels, unlockedLevel, setCurrentLevel, setAppState, bestTimes } = useGameStore();
   const [currentIndex, setCurrentIndex] = useState(() => {
     const idx = LEVELS.findIndex((l) => l.id === unlockedLevel);
@@ -36,6 +38,7 @@ export const LevelSelectRoom: React.FC = () => {
       } else if (e.key === 'ArrowRight') {
         setCurrentIndex((prev) => Math.min(LEVELS.length - 1, prev + 1));
       } else if (e.key === 'Enter' && isUnlocked) {
+        void requestFullscreen();
         setCurrentLevel(level.id);
         setAppState('CHAPTER_PROLOGUE');
       } else if (e.key === 'Escape') {
@@ -48,6 +51,7 @@ export const LevelSelectRoom: React.FC = () => {
 
   const handleEnterChapter = () => {
     if (!isUnlocked) return;
+    void requestFullscreen();
     setCurrentLevel(level.id);
     setAppState('CHAPTER_PROLOGUE');
   };
@@ -70,8 +74,21 @@ export const LevelSelectRoom: React.FC = () => {
             HALL OF CHAPTERS // 0{currentIndex + 1} OF 0{LEVELS.length}
           </div>
 
-          <div className="hidden-xs" style={{ width: '120px', textAlign: 'right', fontSize: '10px', color: '#64748b', letterSpacing: '0.15em' }}>
-            [ ← / → TO SLIDE ]
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              type="button"
+              className="carousel-nav-link"
+              onClick={() => void toggleFullscreen()}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+              style={{ color: isFullscreen ? '#38bdf8' : 'inherit' }}
+            >
+              {isFullscreen ? <Minimize size={13} color="#38bdf8" /> : <Maximize size={13} />}
+              <span className="hidden-xs">{isFullscreen ? 'WINDOW' : 'FULLSCREEN'}</span>
+            </button>
+
+            <div className="hidden-xs" style={{ width: '90px', textAlign: 'right', fontSize: '10px', color: '#64748b', letterSpacing: '0.15em' }}>
+              [ ← / → ]
+            </div>
           </div>
         </div>
 
