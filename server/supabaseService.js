@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { SEED_QUESTIONS } from './seedQuestionsData.js';
 
 let supabaseClient = null;
+let supabaseAnonClient = null;
 
 export function getSupabaseAdmin(env = process.env) {
   if (supabaseClient) return supabaseClient;
@@ -20,11 +22,24 @@ export function getSupabaseAdmin(env = process.env) {
     currentEnv?.SUPABASE_ANON_KEY ||
     currentEnv?.VITE_SUPABASE_ANON_KEY;
 
-  const keyToUse = serviceKey || anonKey;
-
-  if (!url || !keyToUse || !url.startsWith('https://')) {
+  if (!url || !url.startsWith('https://')) {
     return null;
   }
+
+  // Create anon client as reliable fallback
+  if (anonKey) {
+    try {
+      supabaseAnonClient = createClient(url, anonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+    } catch {
+      // ignore
+    }
+  }
+
+  // Prefer valid service key if available, otherwise use anonKey
+  const keyToUse = (serviceKey && !serviceKey.includes('FWQyEFC7kOADsL')) ? serviceKey : (anonKey || serviceKey);
+  if (!keyToUse) return supabaseAnonClient;
 
   try {
     supabaseClient = createClient(url, keyToUse, {
@@ -35,7 +50,7 @@ export function getSupabaseAdmin(env = process.env) {
     });
   } catch (err) {
     console.warn('Failed to initialize Supabase client:', err?.message);
-    return null;
+    return supabaseAnonClient;
   }
 
   return supabaseClient;
@@ -409,14 +424,14 @@ export function normalizeDifficulty(diff) {
   return 'Easy';
 }
 
-const IN_MEMORY_QUESTIONS = [];
+const IN_MEMORY_QUESTIONS = [...(SEED_QUESTIONS || [])];
 
 /**
  * Save a generated escape room question to the database
  */
 export async function handleSaveQuestion(questionData, env) {
   const payload = {
-    id: questionData.id || `q_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    id: questionData.id || `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, '0')}`,
     question: questionData.question,
     domain: questionData.domain || 'Programming Fundamentals',
     tags: Array.isArray(questionData.tags) ? questionData.tags : [],
@@ -477,7 +492,7 @@ export async function handleGetQuestions(filters = {}, env) {
     if (filters.sector_level) {
       list = list.filter((q) => q.sector_level === Number(filters.sector_level));
     }
-    const limit = Number(filters.limit) || 50;
+    const limit = Number(filters.limit) || 100;
     return list.slice(0, limit);
   };
 
@@ -500,16 +515,18 @@ export async function handleGetQuestions(filters = {}, env) {
     if (filters.limit) {
       query = query.limit(Number(filters.limit));
     } else {
-      query = query.limit(50);
+      query = query.limit(100);
     }
 
     const { data: questions, error } = await query;
-    if (error) {
-      console.warn('Notice: generated_questions query error, using in-memory store:', error.message);
+    if (error || !questions || questions.length === 0) {
+      if (error) {
+        console.warn('Notice: generated_questions query error, using in-memory store:', error.message);
+      }
       return { questions: filterInMemory(), status: 200 };
     }
 
-    return { questions: questions || [], status: 200 };
+    return { questions, status: 200 };
   } catch (err) {
     console.warn('Notice: generated_questions query error, using in-memory store:', err?.message || err);
     return { questions: filterInMemory(), status: 200 };

@@ -8,7 +8,8 @@
     "server": "node ./server/index.js",
     "build": "node ./node_modules/vite/bin/vite.js build",
     "start": "node ./node_modules/vite/bin/vite.js preview",
-    "lint": "node ./node_modules/oxlint/bin/oxlint"
+    "lint": "node ./node_modules/oxlint/bin/oxlint",
+    "seed:questions": "node ./scripts/seed_questions.js"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
