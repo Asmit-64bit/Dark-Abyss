@@ -56,16 +56,30 @@
   background: var(--luto-blood-bright);
 }
 
-body, html, #root {
+html, body {
   width: 100%;
   min-height: 100%;
   min-height: 100dvh;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   background-color: var(--luto-void);
   color: var(--luto-bone);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ==========================================================================
@@ -85,9 +99,11 @@ body, html, #root {
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 /* Scratched Film Noise Grain */
@@ -368,6 +384,7 @@ body, html, #root {
   flex-direction: column;
   padding: max(1.25rem, var(--sat)) max(1.25rem, var(--sar)) max(1.25rem, var(--sab)) max(1.25rem, var(--sal));
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   animation: luto-slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: -10px 0 35px rgba(0, 0, 0, 0.8);
@@ -595,6 +612,8 @@ body, html, #root {
   max-width: 95%;
   max-height: 88vh;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   background: rgba(10, 12, 18, 0.98);
   border: 1px solid rgba(185, 28, 28, 0.3);
   border-radius: 6px;
@@ -634,9 +653,7 @@ body, html, #root {
   justify-content: space-between;
   padding: 2.5rem 3.5rem;
   box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
 }
 
 .carousel-top-bar {
@@ -1009,6 +1026,8 @@ body, html, #root {
   max-width: 95%;
   max-height: 88vh;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   background: rgba(12, 14, 20, 0.98);
   border: 1px solid var(--luto-border-active);
   border-radius: 8px;
@@ -1288,6 +1307,7 @@ body, html, #root {
   cursor: pointer;
   user-select: none;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
@@ -2070,6 +2090,8 @@ body, html, #root {
 .profile-tab-body {
   padding: 1.5rem 2rem;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   max-height: 52vh;
   flex: 1;
   position: relative;
@@ -3394,8 +3416,7 @@ body, html, #root {
     min-height: 100vh;
     min-height: 100dvh;
     height: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .title-header-bar {
@@ -3438,8 +3459,7 @@ body, html, #root {
     min-height: 100vh;
     min-height: 100dvh;
     height: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .lore-dossier-modal,
@@ -3488,14 +3508,13 @@ body, html, #root {
 @media (max-width: 768px) {
   .title-screen-container {
     padding-top: max(1.25rem, var(--sat));
-    padding-bottom: max(1rem, var(--sab));
+    padding-bottom: max(2rem, calc(var(--sab) + 1.5rem));
     padding-left: max(1rem, var(--sal));
     padding-right: max(1rem, var(--sar));
     min-height: 100vh;
     min-height: 100dvh;
     height: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .title-header-bar {
@@ -3574,14 +3593,13 @@ body, html, #root {
 
   .carousel-page-container {
     padding-top: max(1.25rem, var(--sat));
-    padding-bottom: max(0.75rem, var(--sab));
+    padding-bottom: max(2rem, calc(var(--sab) + 1.5rem));
     padding-left: max(0.75rem, var(--sal));
     padding-right: max(0.75rem, var(--sar));
     min-height: 100vh;
     min-height: 100dvh;
     height: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .carousel-top-bar {
@@ -3884,6 +3902,7 @@ body, html, #root {
   flex: 1;
   overflow-y: auto;
   overflow-x: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding: 0.5rem 1.75rem;
   max-height: 420px;
@@ -4000,14 +4019,13 @@ body, html, #root {
 @media (max-height: 550px) {
   .title-screen-container {
     padding-top: max(0.5rem, var(--sat));
-    padding-bottom: max(0.5rem, var(--sab));
+    padding-bottom: max(1.25rem, calc(var(--sab) + 0.75rem));
     padding-left: max(1rem, var(--sal));
     padding-right: max(1rem, var(--sar));
     min-height: 100vh;
     min-height: 100dvh;
     height: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
   }
 
   .title-header-bar {
