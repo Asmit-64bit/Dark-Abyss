@@ -295,7 +295,6 @@ html, body {
   align-items: center;
   width: 100%;
   gap: 1.5rem;
-  flex-wrap: wrap;
 }
 
 .title-nav-actions {
@@ -303,6 +302,8 @@ html, body {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 /* Landing Page Mobile Menu Header Trigger */
@@ -3560,8 +3561,9 @@ html, body {
 /* Tablet & Large Desktop Resize (max-width: 1150px) */
 @media (max-width: 1150px) {
   .title-header-bar {
-    flex-direction: column;
-    align-items: flex-start !important;
+    flex-direction: row;
+    justify-content: space-between !important;
+    align-items: center !important;
     gap: 1rem !important;
     width: 100%;
   }
@@ -3569,9 +3571,11 @@ html, body {
   .title-nav-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: flex-end;
+    margin-left: auto;
+    gap: 6px;
     flex-wrap: wrap;
-    width: 100%;
+    width: auto;
   }
 
   .gate-sadako-anchor {
