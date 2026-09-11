@@ -135,7 +135,16 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
     minSanityRecorded,
   } = useGameStore();
 
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => {
+    try {
+      const cached = localStorage.getItem(LOCAL_LEADERBOARD_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 1) return parsed;
+      }
+    } catch {}
+    return DEFAULT_BASELINE_OPERATORS;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [filterMode, setFilterMode] = useState<'score' | 'solo' | 'sanity'>('score');
   const [searchQuery, setSearchQuery] = useState('');
@@ -234,15 +243,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
 
   useEffect(() => {
     if (!isOpen) return;
-    let isMounted = true;
-    queueMicrotask(() => {
-      if (isMounted) {
-        void fetchLeaderboard();
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
+    void fetchLeaderboard();
   }, [isOpen, fetchLeaderboard]);
 
   if (!isOpen) return null;
