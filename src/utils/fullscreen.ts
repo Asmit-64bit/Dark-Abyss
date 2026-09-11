@@ -81,6 +81,7 @@ export const requestFullscreen = async (element?: HTMLElement): Promise<boolean>
 
 export const exitFullscreen = async (): Promise<boolean> => {
   if (typeof document === 'undefined') return false;
+  if (!isFullscreenActive()) return false;
   const doc = document as ExtendedDocument;
 
   try {

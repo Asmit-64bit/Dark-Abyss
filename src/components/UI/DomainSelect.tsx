@@ -36,7 +36,10 @@ export const DomainSelect: React.FC = () => {
         zIndex: 50,
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
-        padding: '2rem 1.25rem 3.5rem',
+        paddingTop: 'max(2rem, var(--sat, 0px))',
+        paddingBottom: 'max(4.5rem, calc(var(--sab, 0px) + 3rem))',
+        paddingLeft: 'max(1.25rem, var(--sal, 0px))',
+        paddingRight: 'max(1.25rem, var(--sar, 0px))',
         boxSizing: 'border-box',
       }}
     >

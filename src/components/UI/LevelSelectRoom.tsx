@@ -4,7 +4,7 @@ import { LEVELS, TOTAL_LEVELS } from '../../data/levels';
 import { puzzles } from '../../data/puzzles';
 import { BgmPlayer } from './BgmPlayer';
 import { ArrowLeft, ChevronLeft, ChevronRight, Lock, Check, Timer, Maximize, Minimize } from 'lucide-react';
-import { useFullscreen, requestFullscreen } from '../../utils/fullscreen';
+import { useFullscreen } from '../../utils/fullscreen';
 
 const CHAPTER_SUBTITLES = [
   'CHAPTER I // THE CLINICAL COLD',
@@ -38,7 +38,6 @@ export const LevelSelectRoom: React.FC = () => {
       } else if (e.key === 'ArrowRight') {
         setCurrentIndex((prev) => Math.min(LEVELS.length - 1, prev + 1));
       } else if (e.key === 'Enter' && isUnlocked) {
-        void requestFullscreen();
         setCurrentLevel(level.id);
         setAppState('CHAPTER_PROLOGUE');
       } else if (e.key === 'Escape') {
@@ -51,7 +50,6 @@ export const LevelSelectRoom: React.FC = () => {
 
   const handleEnterChapter = () => {
     if (!isUnlocked) return;
-    void requestFullscreen();
     setCurrentLevel(level.id);
     setAppState('CHAPTER_PROLOGUE');
   };

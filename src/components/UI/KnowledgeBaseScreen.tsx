@@ -51,7 +51,10 @@ export const KnowledgeBaseScreen: React.FC = () => {
         zIndex: 50,
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
-        padding: '1.75rem 1rem 3rem',
+        paddingTop: 'max(1.75rem, var(--sat, 0px))',
+        paddingBottom: 'max(4.5rem, calc(var(--sab, 0px) + 3rem))',
+        paddingLeft: 'max(1rem, var(--sal, 0px))',
+        paddingRight: 'max(1rem, var(--sar, 0px))',
         boxSizing: 'border-box',
       }}
     >

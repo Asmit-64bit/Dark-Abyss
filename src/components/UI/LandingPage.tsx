@@ -9,7 +9,7 @@ import { LeaderboardModal } from './LeaderboardModal';
 import { ACHIEVEMENTS } from '../../data/achievements';
 import { Trophy, X, ArrowRight, Activity, BookOpen, Eye, User, Cloud, CloudOff, Play, ShieldAlert, Key, AlertTriangle, Maximize, Minimize } from 'lucide-react';
 import { playTerminalBlip } from '../../utils/soundEffects';
-import { useFullscreen, requestFullscreen } from '../../utils/fullscreen';
+import { useFullscreen } from '../../utils/fullscreen';
 
 const SADAKO_WHISPERS = [
   '7 DAYS',
@@ -263,10 +263,7 @@ export const LandingPage: React.FC = () => {
             <button
               type="button"
               className="title-menu-btn primary-btn"
-              onClick={() => {
-                void requestFullscreen();
-                handleButtonClick(() => setAppState('DOMAIN_SELECT'));
-              }}
+              onClick={() => handleButtonClick(() => setAppState('DOMAIN_SELECT'))}
             >
               <span>{hasProgress ? 'RESUME THE CONFRONTATION' : 'STEP INTO ABYSS'}</span>
               <ArrowRight size={14} />
@@ -275,10 +272,7 @@ export const LandingPage: React.FC = () => {
             <button
               type="button"
               className="title-menu-btn"
-              onClick={() => {
-                void requestFullscreen();
-                handleButtonClick(() => setAppState('DOMAIN_SELECT'));
-              }}
+              onClick={() => handleButtonClick(() => setAppState('DOMAIN_SELECT'))}
             >
               <span>CHAPTER ARCHIVES</span>
               <span style={{ fontSize: '10px', opacity: 0.6, fontFamily: 'monospace' }}>

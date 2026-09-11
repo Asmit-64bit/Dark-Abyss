@@ -7,7 +7,7 @@ import {
   playTerminalBlip
 } from '../../utils/soundEffects';
 import { ArrowRight, Volume2, ShieldAlert, Maximize, Minimize } from 'lucide-react';
-import { useFullscreen, requestFullscreen } from '../../utils/fullscreen';
+import { useFullscreen } from '../../utils/fullscreen';
 
 interface HorrorPrologueProps {
   onComplete: () => void;
@@ -133,7 +133,6 @@ const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     setHasStarted(true);
     setCurrentLineIndex(0);
     playTapeStatic(2.0);
-    void requestFullscreen();
   };
 
   const handleAdvance = () => {
@@ -141,7 +140,6 @@ const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       handleStart();
       return;
     }
-    void requestFullscreen();
     if (isTyping) {
       // Skip typing of current line
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
