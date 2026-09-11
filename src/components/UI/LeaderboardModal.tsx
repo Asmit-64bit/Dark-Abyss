@@ -11,6 +11,119 @@ interface LeaderboardModalProps {
 
 const LOCAL_LEADERBOARD_KEY = 'abyss-leaderboard-cache-v1';
 
+export const DEFAULT_BASELINE_OPERATORS: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    operator_name: 'DR_ARIS_THORNE',
+    points: 14850,
+    score: 14850,
+    solo_solves_count: 14,
+    unlocked_level: 5,
+    completed_levels: [1, 2, 3, 4, 5],
+    achievements_count: 8,
+    min_sanity_recorded: 92,
+  },
+  {
+    rank: 2,
+    operator_name: 'CIPHER_NEXUS',
+    points: 12400,
+    score: 12400,
+    solo_solves_count: 12,
+    unlocked_level: 5,
+    completed_levels: [1, 2, 3, 4, 5],
+    achievements_count: 7,
+    min_sanity_recorded: 85,
+  },
+  {
+    rank: 3,
+    operator_name: 'OPERATOR_VANCE',
+    points: 9850,
+    score: 9850,
+    solo_solves_count: 9,
+    unlocked_level: 4,
+    completed_levels: [1, 2, 3, 4],
+    achievements_count: 6,
+    min_sanity_recorded: 78,
+  },
+  {
+    rank: 4,
+    operator_name: 'NULL_POINTER_07',
+    points: 8200,
+    score: 8200,
+    solo_solves_count: 8,
+    unlocked_level: 4,
+    completed_levels: [1, 2, 3, 4],
+    achievements_count: 5,
+    min_sanity_recorded: 96,
+  },
+  {
+    rank: 5,
+    operator_name: 'SECTOR_ARCHIVIST',
+    points: 6450,
+    score: 6450,
+    solo_solves_count: 6,
+    unlocked_level: 3,
+    completed_levels: [1, 2, 3],
+    achievements_count: 4,
+    min_sanity_recorded: 88,
+  },
+  {
+    rank: 6,
+    operator_name: 'SYNTAX_SHADOW',
+    points: 5100,
+    score: 5100,
+    solo_solves_count: 5,
+    unlocked_level: 3,
+    completed_levels: [1, 2, 3],
+    achievements_count: 4,
+    min_sanity_recorded: 71,
+  },
+  {
+    rank: 7,
+    operator_name: 'GHOST_PROTOCOL',
+    points: 3900,
+    score: 3900,
+    solo_solves_count: 4,
+    unlocked_level: 2,
+    completed_levels: [1, 2],
+    achievements_count: 3,
+    min_sanity_recorded: 82,
+  },
+  {
+    rank: 8,
+    operator_name: 'ECHO_RUNNER_99',
+    points: 2750,
+    score: 2750,
+    solo_solves_count: 3,
+    unlocked_level: 2,
+    completed_levels: [1, 2],
+    achievements_count: 2,
+    min_sanity_recorded: 90,
+  },
+  {
+    rank: 9,
+    operator_name: 'RECON_SENTRY',
+    points: 1600,
+    score: 1600,
+    solo_solves_count: 2,
+    unlocked_level: 1,
+    completed_levels: [1],
+    achievements_count: 1,
+    min_sanity_recorded: 65,
+  },
+  {
+    rank: 10,
+    operator_name: 'INIT_RUNNER_01',
+    points: 850,
+    score: 850,
+    solo_solves_count: 1,
+    unlocked_level: 1,
+    completed_levels: [1],
+    achievements_count: 1,
+    min_sanity_recorded: 100,
+  },
+];
+
 export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose }) => {
   const {
     operatorName,
@@ -39,23 +152,30 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
           apiEntries = res.leaderboard;
         }
       } catch (netErr) {
-        console.warn('Network leaderboard fetch error, checking local cache:', netErr);
+        console.warn('[Leaderboard] Network fetch notice, attempting cache/baseline:', netErr);
       }
 
-      // 2. Fallback to localStorage cache if server returned empty
+      // 2. Fallback to localStorage cache (ignore single-entry poisoned caches)
       if (apiEntries.length === 0) {
         try {
           const cached = localStorage.getItem(LOCAL_LEADERBOARD_KEY);
           if (cached) {
             const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed) && parsed.length > 0) {
+            if (Array.isArray(parsed) && parsed.length > 1) {
               apiEntries = parsed;
+            } else {
+              localStorage.removeItem(LOCAL_LEADERBOARD_KEY);
             }
           }
         } catch {}
       }
 
-      // 3. Merge current player's live gameplay stats
+      // 3. Fallback to baseline roster if server and local cache are both unavailable
+      if (apiEntries.length === 0) {
+        apiEntries = [...DEFAULT_BASELINE_OPERATORS];
+      }
+
+      // 4. Merge current player's live gameplay stats
       const currentOperator = (operatorName || 'OPERATOR_09').trim().toUpperCase();
       const playerEntry: LeaderboardEntry = {
         rank: 0,
@@ -97,10 +217,12 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         merged = [playerEntry, ...apiEntries];
       }
 
-      // 4. Save merged roster to local cache for offline persistence
-      try {
-        localStorage.setItem(LOCAL_LEADERBOARD_KEY, JSON.stringify(merged));
-      } catch {}
+      // 5. Save merged roster to local cache (only if valid roster with > 1 entry)
+      if (merged.length > 1) {
+        try {
+          localStorage.setItem(LOCAL_LEADERBOARD_KEY, JSON.stringify(merged));
+        } catch {}
+      }
 
       setLeaderboard(merged);
     } catch (err) {
