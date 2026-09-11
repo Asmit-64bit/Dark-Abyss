@@ -87,6 +87,23 @@ const htmlContent = `<!DOCTYPE html>
     .badge.green { background: #dcfce7; color: #166534; border-color: #86efac; }
     .badge.purple { background: #f3e8ff; color: #6b21a8; border-color: #d8b4fe; }
 
+    .links {
+      margin-top: 10px;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .links a {
+      color: #0284c7;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .links .sep {
+      margin: 0 8px;
+      color: #cbd5e1;
+    }
+
     h2 {
       font-size: 17px;
       color: #0f172a;
@@ -230,6 +247,11 @@ const htmlContent = `<!DOCTYPE html>
       <span class="badge purple">Supabase Cloud Auth & Leaderboard</span>
       <span class="badge">MIT License</span>
     </div>
+    <div class="links">
+      <span>🌐 Live Demo: <a href="https://abyss-genesis-nine.vercel.app/">https://abyss-genesis-nine.vercel.app</a></span>
+      <span class="sep">•</span>
+      <span>🐙 GitHub: <a href="https://github.com/Asmit-64bit/Dark-Abyss">github.com/Asmit-64bit/Dark-Abyss</a></span>
+    </div>
   </header>
 
   <h2>1. Executive Summary & Overview</h2>
@@ -237,7 +259,7 @@ const htmlContent = `<!DOCTYPE html>
     <strong>Abyss</strong> is an immersive pedagogical escape room designed to test real-world computer science fundamentals through psychological tension. Players explore an atmospheric underground laboratory (<em>"Schrödinger's Abyss"</em>), inspect physics-driven terminal props, solve algorithmic decryption tasks in an integrated code execution REPL sandbox, and regulate heart-rate telemetry while surviving pursuit by an anomaly entity (<em>Sadako</em>).
   </p>
   <p>
-    The game dynamically scales challenge difficulty across five standardized academic computer science domains in real time, factoring in code syntax errors, solve velocity, and hint reliance.
+    The game dynamically scales challenge difficulty across standardized academic computer science domains in real time, factoring in code syntax errors, solve velocity, and hint reliance.
   </p>
 
   <h2>2. Key Innovations & Technical Features</h2>
@@ -265,6 +287,14 @@ const htmlContent = `<!DOCTYPE html>
     <div class="feature-card">
       <h4>Psychological Sanity System</h4>
       <p>Dynamic sanity gauge (0–100) tied to a procedural Web Audio heartbeat synthesizer (72–152 BPM), triggering camera grain, chromatic aberration, and subliminal apparitions.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Interactive REPL Sandbox</h4>
+      <p>Integrated in-game JavaScript/TypeScript execution runtime. Safely evaluates code logic with forensic feedback, syntax profiling, and error boundary recovery.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Subterranean 3D Physics</h4>
+      <p>Atmospheric world built on Three.js & Rapier 3D physics. Includes dynamic flashlight raycasting, pointer-lock exploration, and interactive CRT terminals.</p>
     </div>
   </div>
 
@@ -374,11 +404,11 @@ npm run dev
 # 5. Build for production
 npm run build</code></pre>
 
-  <h2>7. Database Migrations & Seeds</h2>
+  <h2>7. Database Architecture & Setup</h2>
   <ul>
-    <li><code>supabase/schema.sql</code>: Table definitions, RLS access policies, automated registration triggers.</li>
-    <li><code>supabase/seed_leaderboard.sql</code>: 10 baseline facility NPC operators with nullable credential constraints.</li>
-    <li><code>supabase/seed_questions.sql</code>: 70+ curated academic challenges across all 5 curriculum domains.</li>
+    <li><code>supabase/schema.sql</code>: Core relational schema provisioning <code>profiles</code> and <code>generated_questions</code> tables, RLS security policies, performance indexes, and automated auth triggers.</li>
+    <li><code>npm run seed:questions</code>: Automated seed script populating 70+ curated academic challenges across all facility curriculum domains into Supabase.</li>
+    <li><strong>Dual-Mode Leaderboard Resilience</strong>: Real-time Supabase cloud synchronization paired with zero-latency client-side baseline NPC roster fallbacks for static and offline environments.</li>
   </ul>
 
   <h2>8. License & Acknowledgments</h2>

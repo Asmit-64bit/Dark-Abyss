@@ -13,7 +13,7 @@
 
 *"The building has been empty for nine years. You came down here to steal a hard drive. The door locked behind you. Somewhere in the dark, a machine is still running — and it has been waiting a very long time for someone to talk to."*
 
-[Live Demo](https://abyss-genesis-nine.vercel.app/) • [Report Bug](https://github.com/Asmit-64bit/Dark-Abyss/issues) • [Request Feature](https://github.com/Asmit-64bit/Dark-Abyss/issues)
+[Live Demo](https://abyss-genesis-nine.vercel.app/) • [Download PDF Documentation](README.pdf) • [Report Bug](https://github.com/Asmit-64bit/Dark-Abyss/issues) • [Request Feature](https://github.com/Asmit-64bit/Dark-Abyss/issues)
 
 </div>
 
@@ -133,13 +133,12 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 ```
 
 ### 4. Database Setup (Supabase)
-1. Run [`supabase/schema.sql`](supabase/schema.sql) in your [Supabase SQL Editor](https://supabase.com/dashboard) to create the `profiles`, `generated_questions`, and unified views.
-2. Run [`supabase/seed_leaderboard.sql`](supabase/seed_leaderboard.sql) to seed baseline NPC operators into the leaderboard.
-3. *(Optional)* Seed curated domain questions:
+1. Run [`supabase/schema.sql`](supabase/schema.sql) in your [Supabase SQL Editor](https://supabase.com/dashboard) to provision the `profiles` and `generated_questions` tables, Row-Level Security (RLS) policies, indexes, and user triggers.
+2. Populate the question bank with 70+ curated curriculum challenges:
    ```bash
    npm run seed:questions
    ```
-   Or execute [`supabase/seed_questions.sql`](supabase/seed_questions.sql) directly in Supabase.
+3. *Note*: The global leaderboard features dual-mode architecture—live real-time synchronization with Supabase, with automatic client-side baseline roster fallbacks for zero-downtime offline and static deployments.
 
 ### 5. Launch Development Server
 ```bash
@@ -192,9 +191,7 @@ Abyss/
 │   ├── store/              # Zustand global state (`gameStore.ts`, `authStore.ts`)
 │   └── utils/              # Web Audio synthesizers & horror sound effects
 ├── supabase/
-│   ├── schema.sql          # Core tables, RLS policies, and triggers
-│   ├── seed_leaderboard.sql# NPC leaderboard seed & constraint configuration
-│   └── seed_questions.sql  # 70+ curated domain puzzles
+│   └── schema.sql          # Core tables, RLS policies, indexes, and triggers
 └── vite.config.ts          # Vite configuration, COOP/COEP, and dev middleware
 ```
 
