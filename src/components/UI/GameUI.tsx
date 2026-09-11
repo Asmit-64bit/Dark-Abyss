@@ -24,6 +24,7 @@ import {
   Eye,
   Maximize,
   Minimize,
+  Menu,
 } from 'lucide-react';
 import { useFullscreen } from '../../utils/fullscreen';
 import {
@@ -56,6 +57,7 @@ export const GameUI: React.FC = () => {
     setEscaped,
     escaped,
     bookModalOpen,
+    setBookModalOpen,
     currentLevel,
     setAppState,
     completeLevel,
@@ -514,23 +516,15 @@ export const GameUI: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', pointerEvents: 'auto' }}>
           <button
             type="button"
-            onClick={() => setAppState('LANDING')}
-            style={{
-              fontSize: '10px',
-              letterSpacing: '0.15em',
-              color: '#8b929e',
-              textTransform: 'uppercase',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              padding: '6px 12px',
-              borderRadius: '4px',
-              background: 'rgba(14, 16, 21, 0.8)',
-              transition: 'background 0.2s',
-              cursor: 'pointer',
+            onClick={() => {
+              playTerminalBlip();
+              setShowExitModal(true);
             }}
-            onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(14, 16, 21, 0.8)')}
+            className="carousel-nav-link in-game-menu-btn"
+            title="Open Mission Pause Menu"
           >
-            ← BACK
+            <Menu size={13} color="#f4f5f8" />
+            <span>MENU</span>
           </button>
           <div style={{ fontSize: '11px', letterSpacing: '0.18em', color: '#8b929e', textTransform: 'uppercase' }}>
             CHAPTER 0{currentLevel}<span className="hidden-xs"> // LIMINAL LOCUS</span>
@@ -667,62 +661,116 @@ export const GameUI: React.FC = () => {
       {/* Diegetic Mobile Touch D-Pad & Camera Controls */}
       <MobileTouchControls />
 
-      {/* Exit Confirmation Modal */}
+      {/* Exit / Mission Menu Confirmation Modal */}
       {showExitModal && (
-        <div className="luto-dossier-overlay">
-          <div className="luto-dossier-modal" style={{ width: '420px' }}>
+        <div className="luto-dossier-overlay" onClick={() => setShowExitModal(false)}>
+          <div className="luto-dossier-modal" style={{ width: '440px' }} onClick={(e) => e.stopPropagation()}>
             <div className="dossier-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f4f5f8' }}>
-                <LogOut size={16} color="#dc2626" />
+                <Menu size={16} color="#ef4444" />
                 <span style={{ fontSize: '11px', letterSpacing: '0.18em', fontWeight: 600 }}>
-                  PAUSE SIMULATION
+                  MISSION TERMINAL // PAUSE MENU
                 </span>
               </div>
               <button
                 onClick={() => setShowExitModal(false)}
                 className="carousel-nav-link"
                 style={{ padding: '4px' }}
+                aria-label="Resume Game"
               >
                 <X size={14} />
               </button>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#8b929e', lineHeight: 1.7, marginBottom: '1.5rem' }}>
-              Your progress in Chapter 0{currentLevel} is retained. Choose a destination:
-            </p>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                margin: '0.5rem 0 1.25rem',
+                padding: '8px 12px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '4px',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '9px', color: '#64748b', letterSpacing: '0.15em' }}>CURRENT MISSION</div>
+                <div style={{ fontSize: '12px', color: '#f4f5f8', fontWeight: 600 }}>CHAPTER 0{currentLevel}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '9px', color: '#64748b', letterSpacing: '0.15em' }}>MISSION TIME</div>
+                <div style={{ fontSize: '12px', color: '#cbd5e1', fontFamily: 'monospace', fontWeight: 600 }}>
+                  {timerDisplay}
+                </div>
+              </div>
+            </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
                 type="button"
                 onClick={() => {
+                  playTerminalBlip();
+                  setShowExitModal(false);
+                }}
+                className="title-menu-btn primary-btn"
+                style={{ justifyContent: 'center' }}
+              >
+                <Play size={13} />
+                <span>RESUME SIMULATION</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playTerminalBlip();
+                  setShowExitModal(false);
+                  setBookModalOpen(true);
+                }}
+                className="title-menu-btn"
+              >
+                <BookOpen size={13} color="#38bdf8" />
+                <span>FIELD STUDY NOTES</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playTerminalBlip();
+                  setShowExitModal(false);
+                  setLeaderboardModalOpen(true);
+                }}
+                className="title-menu-btn"
+              >
+                <Trophy size={13} color="#facc15" />
+                <span>GLOBAL LEADERBOARD</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playTerminalBlip();
                   setShowExitModal(false);
                   setAppState('LEVEL_SELECT');
                 }}
                 className="title-menu-btn"
               >
                 <ArrowLeft size={13} />
-                <span>CHAPTER ARCHIVES</span>
+                <span>RETURN TO CHAPTER SELECT</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
+                  playTerminalBlip();
                   setShowExitModal(false);
                   setAppState('LANDING');
                 }}
                 className="title-menu-btn"
+                style={{ borderColor: 'rgba(220, 38, 38, 0.4)' }}
               >
-                <LogOut size={13} />
-                <span>MAIN TITLE SCREEN</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowExitModal(false)}
-                className="carousel-nav-link"
-                style={{ justifyContent: 'center', marginTop: '6px' }}
-              >
-                RESUME [ ESC ]
+                <LogOut size={13} color="#ef4444" />
+                <span>ABORT TO MAIN TITLE</span>
               </button>
             </div>
           </div>

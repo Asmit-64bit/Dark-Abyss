@@ -7,7 +7,7 @@ import { ProfileDashboard } from './ProfileDashboard';
 import { AuthModal } from './AuthModal';
 import { LeaderboardModal } from './LeaderboardModal';
 import { ACHIEVEMENTS } from '../../data/achievements';
-import { Trophy, X, ArrowRight, Activity, BookOpen, Eye, User, Cloud, CloudOff, Play, ShieldAlert, Key, AlertTriangle, Maximize, Minimize } from 'lucide-react';
+import { Trophy, X, ArrowRight, Activity, BookOpen, Eye, User, Cloud, CloudOff, Play, ShieldAlert, Key, AlertTriangle, Maximize, Minimize, Menu } from 'lucide-react';
 import { playTerminalBlip } from '../../utils/soundEffects';
 import { useFullscreen } from '../../utils/fullscreen';
 
@@ -41,6 +41,7 @@ export const LandingPage: React.FC = () => {
   const [showPrologue, setShowPrologue] = useState(true);
   const [showRecords, setShowRecords] = useState(false);
   const [showLoreDossier, setShowLoreDossier] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isGhostManifested, setIsGhostManifested] = useState(false);
   const [isJumpscare, setIsJumpscare] = useState(false);
   const [whisperText, setWhisperText] = useState<string | null>(null);
@@ -170,7 +171,8 @@ export const LandingPage: React.FC = () => {
             <span>CASE FILE // INCIDENT_04-A // SADAKO CURSE</span>
           </div>
 
-          <div className="title-nav-actions">
+          {/* Desktop Navigation Bar */}
+          <div className="title-nav-actions desktop-nav-actions">
             <button
               type="button"
               onClick={() => handleButtonClick(() => setShowPrologue(true))}
@@ -240,6 +242,32 @@ export const LandingPage: React.FC = () => {
                   <CloudOff size={12} color="#64748b" className="profile-header-cloud-icon" />
                 </div>
               )}
+            </button>
+          </div>
+
+          {/* Mobile Header Quick Actions: Profile & Menu Button */}
+          <div className="title-mobile-header-actions">
+            <button
+              type="button"
+              onClick={() => handleButtonClick(() => setProfileModalOpen(true))}
+              className="carousel-nav-link profile-header-trigger-btn"
+              title="Open Operator Profile"
+            >
+              <User size={12} color="#ef4444" />
+              <span>{operatorName || 'OPERATOR'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                playTerminalBlip();
+                setMobileMenuOpen(!mobileMenuOpen);
+              }}
+              className="title-mobile-menu-trigger"
+              aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+            >
+              {mobileMenuOpen ? <X size={14} color="#ef4444" /> : <Menu size={14} color="#f4f5f8" />}
+              <span>{mobileMenuOpen ? 'CLOSE' : 'MENU'}</span>
             </button>
           </div>
         </div>
@@ -473,6 +501,137 @@ export const LandingPage: React.FC = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Mobile Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div
+          className="title-mobile-drawer-overlay"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <div
+            className="title-mobile-drawer-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="drawer-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="luto-pulse-dot" />
+                <span style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#cbd5e1', fontWeight: 600 }}>
+                  FACILITY MENU // NAVIGATION
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="carousel-nav-link"
+                style={{ padding: '6px' }}
+                aria-label="Close Menu"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="drawer-nav-list">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleButtonClick(() => setShowPrologue(true));
+                }}
+                className="drawer-nav-item"
+              >
+                <div className="drawer-nav-icon"><Play size={16} color="#e51d3b" /></div>
+                <div className="drawer-nav-content">
+                  <span className="drawer-nav-title">REPLAY PROLOGUE</span>
+                  <span className="drawer-nav-desc">Psychological horror introduction sequence</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleButtonClick(() => setShowLoreDossier(true));
+                }}
+                className="drawer-nav-item"
+              >
+                <div className="drawer-nav-icon"><BookOpen size={16} color="#38bdf8" /></div>
+                <div className="drawer-nav-content">
+                  <span className="drawer-nav-title">FACILITY ARCHIVES</span>
+                  <span className="drawer-nav-desc">Incident 04-A case file and containment logs</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleButtonClick(() => setLeaderboardModalOpen(true));
+                }}
+                className="drawer-nav-item"
+              >
+                <div className="drawer-nav-icon"><Trophy size={16} color="#facc15" /></div>
+                <div className="drawer-nav-content">
+                  <span className="drawer-nav-title">OPERATORS LEADERBOARD</span>
+                  <span className="drawer-nav-desc">Global rankings & speedrun records {score > 0 ? `(${score.toLocaleString()} PTS)` : ''}</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleButtonClick(() => setShowRecords(true));
+                }}
+                className="drawer-nav-item"
+              >
+                <div className="drawer-nav-icon"><Activity size={16} color="#10b981" /></div>
+                <div className="drawer-nav-content">
+                  <span className="drawer-nav-title">TELEMETRY & RECORDS</span>
+                  <span className="drawer-nav-desc">Clearance achievements ({achievements.length}/{ACHIEVEMENTS.length})</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleButtonClick(() => setProfileModalOpen(true));
+                }}
+                className="drawer-nav-item"
+              >
+                <div className="drawer-nav-icon"><User size={16} color="#ef4444" /></div>
+                <div className="drawer-nav-content">
+                  <span className="drawer-nav-title">OPERATOR IDENTITY</span>
+                  <span className="drawer-nav-desc">{operatorName || 'OPERATOR'} {user ? '• Cloud Synced' : '• Offline Mode'}</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleButtonClick(() => void toggleFullscreen());
+                }}
+                className="drawer-nav-item"
+              >
+                <div className="drawer-nav-icon">
+                  {isFullscreen ? <Minimize size={16} color="#38bdf8" /> : <Maximize size={16} color="#38bdf8" />}
+                </div>
+                <div className="drawer-nav-content">
+                  <span className="drawer-nav-title">{isFullscreen ? 'EXIT FULLSCREEN' : 'FULLSCREEN IMMERSION'}</span>
+                  <span className="drawer-nav-desc">{isFullscreen ? 'Switch to windowed mode' : 'Edge-to-edge display on mobile & tablet'}</span>
+                </div>
+              </button>
+            </div>
+
+            <div className="drawer-footer">
+              <div style={{ fontSize: '9px', color: '#64748b', letterSpacing: '0.15em' }}>
+                CONTAINMENT PROTOCOL // ACTIVE
+              </div>
             </div>
           </div>
         </div>
