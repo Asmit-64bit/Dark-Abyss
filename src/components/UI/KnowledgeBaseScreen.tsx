@@ -43,24 +43,57 @@ export const KnowledgeBaseScreen: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         color: '#f4f5f8',
         fontFamily: 'Inter, sans-serif',
         zIndex: 50,
-        padding: '40px',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        padding: '1.75rem 1rem 3rem',
       }}
     >
-      <div style={{ position: 'absolute', top: 40, left: 40, color: '#8b929e', fontSize: '11px', letterSpacing: '0.2em' }}>
-        SYSTEM DIRECTIVE // DOSSIER REVIEW
+      {/* Responsive Top Bar */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+          maxWidth: '800px',
+          marginBottom: '1.5rem',
+          flexWrap: 'wrap',
+          gap: '8px',
+        }}
+      >
+        <div style={{ color: '#8b929e', fontSize: '10px', letterSpacing: '0.2em' }}>
+          SYSTEM DIRECTIVE // DOSSIER REVIEW
+        </div>
+
+        <button
+          onClick={() => setAppState('DOMAIN_SELECT')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#8b929e',
+            fontSize: '10px',
+            letterSpacing: '0.12em',
+            cursor: 'pointer',
+            padding: '4px',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#f87171'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#8b929e'; }}
+        >
+          ← CHANGE DOMAIN
+        </button>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-        <BookOpen size={32} color="#f472b6" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.25rem', textAlign: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <BookOpen size={26} color="#f472b6" />
         <h1
           style={{
             fontFamily: 'Cinzel, serif',
-            fontSize: '2rem',
-            letterSpacing: '0.15em',
+            fontSize: 'clamp(1.3rem, 5vw, 2rem)',
+            letterSpacing: '0.12em',
             color: '#f87171',
             textShadow: '0 0 20px rgba(248, 113, 113, 0.3)',
             textTransform: 'uppercase',
@@ -75,20 +108,21 @@ export const KnowledgeBaseScreen: React.FC = () => {
         style={{ 
           width: '100%', 
           maxWidth: '800px', 
-          height: '50vh', 
+          maxHeight: '46vh', 
           overflowY: 'auto',
-          background: 'rgba(0, 0, 0, 0.6)',
+          WebkitOverflowScrolling: 'touch',
+          background: 'rgba(0, 0, 0, 0.65)',
           border: '1px solid rgba(244, 114, 182, 0.3)',
           borderRadius: '8px',
-          padding: '24px',
+          padding: '16px 20px',
           boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.8)',
-          marginBottom: '32px'
+          marginBottom: '1.75rem'
         }}
       >
         <pre
           style={{
             fontFamily: '"Fira Code", "Courier New", monospace',
-            fontSize: '0.9rem',
+            fontSize: '0.82rem',
             lineHeight: '1.6',
             color: '#cbd5e1',
             whiteSpace: 'pre-wrap',
@@ -104,18 +138,21 @@ export const KnowledgeBaseScreen: React.FC = () => {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          justifyContent: 'center',
+          gap: '10px',
           background: 'linear-gradient(90deg, rgba(244, 114, 182, 0.2), rgba(96, 165, 250, 0.2))',
           border: '1px solid rgba(244, 114, 182, 0.5)',
-          padding: '16px 32px',
+          padding: '14px 28px',
           borderRadius: '4px',
           color: '#f4f5f8',
-          fontSize: '1rem',
+          fontSize: '0.88rem',
           fontWeight: 600,
           letterSpacing: '0.1em',
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           boxShadow: '0 0 20px rgba(244, 114, 182, 0.2)',
+          maxWidth: '520px',
+          width: '100%',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'translateY(-2px)';
@@ -126,8 +163,8 @@ export const KnowledgeBaseScreen: React.FC = () => {
           e.currentTarget.style.boxShadow = '0 0 20px rgba(244, 114, 182, 0.2)';
         }}
       >
-        <Terminal size={18} />
-        ACKNOWLEDGE & PROCEED TO TESTING
+        <Terminal size={16} />
+        <span>ACKNOWLEDGE & PROCEED</span>
       </button>
     </div>
   );

@@ -92,7 +92,7 @@ export const DocumentationViewer: React.FC = () => {
 
   return (
     <div className="luto-dossier-overlay">
-      <div className="luto-dossier-modal" style={{ maxWidth: '600px' }}>
+      <div className="luto-dossier-modal" style={{ maxWidth: '600px', width: '100%' }}>
         <div className="dossier-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f4f5f8' }}>
             <BookOpen size={15} />

@@ -63,14 +63,14 @@ export const LevelSelectRoom: React.FC = () => {
             onClick={() => setAppState('LANDING')}
           >
             <ArrowLeft size={13} />
-            <span>MAIN ARCHIVE</span>
+            <span><span className="hidden-xs">MAIN </span>ARCHIVE</span>
           </button>
 
-          <div style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#8b929e', textTransform: 'uppercase' }}>
-            THE HALL OF CHAPTERS // 0{currentIndex + 1} OF 0{LEVELS.length}
+          <div style={{ fontSize: '11px', letterSpacing: '0.22em', color: '#8b929e', textTransform: 'uppercase', textAlign: 'center' }}>
+            HALL OF CHAPTERS // 0{currentIndex + 1} OF 0{LEVELS.length}
           </div>
 
-          <div style={{ width: '120px', textAlign: 'right', fontSize: '10px', color: '#64748b', letterSpacing: '0.15em' }}>
+          <div className="hidden-xs" style={{ width: '120px', textAlign: 'right', fontSize: '10px', color: '#64748b', letterSpacing: '0.15em' }}>
             [ ← / → TO SLIDE ]
           </div>
         </div>

@@ -282,7 +282,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1.5rem',
+        padding: '0.75rem',
         animation: 'fadeIn 0.2s ease-out',
       }}
       onClick={onClose}
@@ -291,7 +291,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         style={{
           width: '100%',
           maxWidth: '860px',
-          maxHeight: '90vh',
+          maxHeight: '92vh',
           background: 'rgba(10, 13, 20, 0.95)',
           border: '1px solid rgba(255, 255, 255, 0.12)',
           boxShadow: '0 24px 64px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.06)',
@@ -305,16 +305,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div
-          style={{
-            padding: '1.25rem 1.75rem',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 100%)',
-          }}
-        >
+        <div className="leaderboard-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div
               style={{
@@ -327,12 +318,13 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#facc15',
+                flexShrink: 0,
               }}
             >
               <Trophy size={20} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, letterSpacing: '0.08em', color: '#f8fafc' }}>
                   GLOBAL OPERATOR LEADERBOARD
                 </h2>
@@ -402,14 +394,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
 
         {/* Top 3 Podium Cards across all filters */}
         {sortedEntries.length >= 3 && searchQuery === '' && (
-          <div
-            style={{
-              padding: '1.25rem 1.75rem 0.5rem',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '1rem',
-            }}
-          >
+          <div className="leaderboard-podium-grid">
             {/* Rank 2 (Silver) */}
             {(() => {
               const rank2 = sortedEntries[1];
@@ -636,17 +621,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         )}
 
         {/* Filter Pills & Search Bar */}
-        <div
-          style={{
-            padding: '0.85rem 1.75rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-            flexWrap: 'wrap',
-          }}
-        >
+        <div className="leaderboard-filter-bar">
           <div style={{ display: 'flex', gap: '6px' }}>
             <button
               onClick={() => {
@@ -736,7 +711,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         </div>
 
         {/* Leaderboard Table List */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem 1.75rem', maxHeight: '420px' }}>
+        <div className="leaderboard-table-container">
           {filteredEntries.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3.5rem 1rem', color: '#94a3b8' }}>
               <Trophy size={36} color="#64748b" style={{ margin: '0 auto 0.75rem', opacity: 0.4 }} />
@@ -748,7 +723,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
               </p>
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+            <table className="leaderboard-table">
               <thead>
                 <tr
                   style={{

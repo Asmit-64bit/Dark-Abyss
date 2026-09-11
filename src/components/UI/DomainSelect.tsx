@@ -28,46 +28,61 @@ export const DomainSelect: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         color: '#f4f5f8',
         fontFamily: 'Inter, sans-serif',
         zIndex: 50,
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        padding: '2rem 1.25rem 3.5rem',
       }}
     >
-      <div style={{ position: 'absolute', top: 40, left: 40, color: '#8b929e', fontSize: '11px', letterSpacing: '0.2em' }}>
-        SYSTEM DIRECTIVE // SELECTION PHASE
-      </div>
-
-      <button
-        onClick={() => setAppState('LANDING')}
+      {/* Responsive Top Bar */}
+      <div
         style={{
-          position: 'absolute',
-          top: 40,
-          right: 40,
-          background: 'none',
-          border: 'none',
-          color: '#8b929e',
           display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
+          width: '100%',
+          maxWidth: '520px',
+          marginBottom: '2rem',
+          flexWrap: 'wrap',
           gap: '8px',
-          cursor: 'pointer',
-          fontSize: '11px',
-          letterSpacing: '0.1em',
-          transition: 'color 0.2s ease',
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = '#f87171'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = '#8b929e'; }}
       >
-        <ArrowLeft size={14} />
-        ABORT SELECTION
-      </button>
+        <div style={{ color: '#8b929e', fontSize: '10px', letterSpacing: '0.2em' }}>
+          SYSTEM DIRECTIVE // SELECTION
+        </div>
+
+        <button
+          onClick={() => setAppState('LANDING')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#8b929e',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+            fontSize: '10px',
+            letterSpacing: '0.12em',
+            transition: 'color 0.2s ease',
+            padding: '4px',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#f87171'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#8b929e'; }}
+        >
+          <ArrowLeft size={13} />
+          <span>ABORT</span>
+        </button>
+      </div>
 
       <h1
         style={{
           fontFamily: 'Cinzel, serif',
-          fontSize: '2.5rem',
-          letterSpacing: '0.15em',
-          marginBottom: '1rem',
+          fontSize: 'clamp(1.6rem, 6vw, 2.5rem)',
+          letterSpacing: '0.12em',
+          marginBottom: '0.75rem',
           color: '#f87171',
           textShadow: '0 0 20px rgba(248, 113, 113, 0.3)',
           textTransform: 'uppercase',
@@ -76,7 +91,7 @@ export const DomainSelect: React.FC = () => {
       >
         How would you like to lose?
       </h1>
-      <p style={{ color: '#8b929e', fontSize: '0.95rem', marginBottom: '3rem', letterSpacing: '0.05em' }}>
+      <p style={{ color: '#8b929e', fontSize: '0.88rem', marginBottom: '2rem', letterSpacing: '0.04em', textAlign: 'center', maxWidth: '440px' }}>
         Select your neural focus. The facility will adapt its anomalies to your choice.
       </p>
 

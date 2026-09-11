@@ -409,32 +409,36 @@ export function normalizeDifficulty(diff) {
   return 'Easy';
 }
 
+const IN_MEMORY_QUESTIONS = [];
+
 /**
  * Save a generated escape room question to the database
  */
 export async function handleSaveQuestion(questionData, env) {
+  const payload = {
+    id: questionData.id || `q_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    question: questionData.question,
+    domain: questionData.domain || 'Programming Fundamentals',
+    tags: Array.isArray(questionData.tags) ? questionData.tags : [],
+    difficulty: normalizeDifficulty(questionData.difficulty),
+    title: questionData.title || null,
+    scenario: questionData.scenario || null,
+    code_snippet: questionData.code_snippet || questionData.codeSnippet || null,
+    answer: Array.isArray(questionData.answer) ? questionData.answer : [String(questionData.answer || '')],
+    hint: questionData.hint || null,
+    explanation: questionData.explanation || null,
+    sector_level: typeof questionData.sector_level === 'number' ? questionData.sector_level : (questionData.level || 1),
+    created_by: questionData.created_by || null,
+    created_at: new Date().toISOString(),
+  };
+
   const supabase = getSupabaseAdmin(env);
   if (!supabase) {
-    return { error: 'Database backend not configured', status: 503 };
+    IN_MEMORY_QUESTIONS.unshift(payload);
+    return { question: payload, success: true, status: 201 };
   }
 
   try {
-    const payload = {
-      question: questionData.question,
-      domain: questionData.domain || 'Programming Fundamentals',
-      tags: Array.isArray(questionData.tags) ? questionData.tags : [],
-      difficulty: normalizeDifficulty(questionData.difficulty),
-      title: questionData.title || null,
-      scenario: questionData.scenario || null,
-      code_snippet: questionData.code_snippet || questionData.codeSnippet || null,
-      answer: Array.isArray(questionData.answer) ? questionData.answer : [String(questionData.answer || '')],
-      hint: questionData.hint || null,
-      explanation: questionData.explanation || null,
-      sector_level: typeof questionData.sector_level === 'number' ? questionData.sector_level : (questionData.level || 1),
-      created_by: questionData.created_by || null,
-      created_at: new Date().toISOString(),
-    };
-
     const { data: savedQuestion, error } = await supabase
       .from('generated_questions')
       .insert(payload)
@@ -442,14 +446,16 @@ export async function handleSaveQuestion(questionData, env) {
       .maybeSingle();
 
     if (error) {
-      console.warn('Notice: generated_questions table error:', error.message);
-      return { error: error.message, status: 400 };
+      console.warn('Notice: generated_questions table error, caching in memory:', error.message);
+      IN_MEMORY_QUESTIONS.unshift(payload);
+      return { question: payload, success: true, status: 201 };
     }
 
     return { question: savedQuestion, success: true, status: 201 };
   } catch (err) {
-    console.warn('Error saving generated question:', err?.message);
-    return { error: err?.message || 'Failed to save question', status: 500 };
+    console.warn('Error saving generated question to database, caching in memory:', err?.message);
+    IN_MEMORY_QUESTIONS.unshift(payload);
+    return { question: payload, success: true, status: 201 };
   }
 }
 
@@ -458,8 +464,25 @@ export async function handleSaveQuestion(questionData, env) {
  */
 export async function handleGetQuestions(filters = {}, env) {
   const supabase = getSupabaseAdmin(env);
+
+  const filterInMemory = () => {
+    let list = [...IN_MEMORY_QUESTIONS];
+    if (filters.domain) {
+      list = list.filter((q) => q.domain === filters.domain);
+    }
+    if (filters.difficulty) {
+      const diff = normalizeDifficulty(filters.difficulty);
+      list = list.filter((q) => q.difficulty === diff);
+    }
+    if (filters.sector_level) {
+      list = list.filter((q) => q.sector_level === Number(filters.sector_level));
+    }
+    const limit = Number(filters.limit) || 50;
+    return list.slice(0, limit);
+  };
+
   if (!supabase) {
-    return { error: 'Database backend not configured', status: 503 };
+    return { questions: filterInMemory(), status: 200 };
   }
 
   try {
@@ -482,12 +505,14 @@ export async function handleGetQuestions(filters = {}, env) {
 
     const { data: questions, error } = await query;
     if (error) {
-      return { error: error.message, status: 400 };
+      console.warn('Notice: generated_questions query error, using in-memory store:', error.message);
+      return { questions: filterInMemory(), status: 200 };
     }
 
     return { questions: questions || [], status: 200 };
   } catch (err) {
-    return { error: err?.message || 'Error fetching questions', status: 500 };
+    console.warn('Notice: generated_questions query error, using in-memory store:', err?.message || err);
+    return { questions: filterInMemory(), status: 200 };
   }
 }
 

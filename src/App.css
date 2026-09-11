@@ -869,6 +869,9 @@ body, html, #root {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 1.25rem;
   padding-bottom: 0.25rem;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dossier-tab-btn {
@@ -3029,6 +3032,486 @@ body, html, #root {
   font-size: 8px;
   letter-spacing: 0.14em;
   color: #64748b;
+}
+
+/* ==========================================================================
+   LUTO // MOBILE TOUCH CONTROLS & DIEGETIC HUD
+   ========================================================================== */
+
+.mobile-touch-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 35;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 1.25rem;
+}
+
+.mobile-dpad-container {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(3, 48px);
+  gap: 5px;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.mobile-dpad-btn {
+  background: rgba(14, 18, 26, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  color: #f1f3f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(14px);
+  touch-action: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.mobile-dpad-btn:active,
+.mobile-dpad-btn.active {
+  background: rgba(220, 38, 38, 0.55);
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(0.92);
+  box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
+}
+
+.mobile-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+.mobile-action-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(14, 18, 26, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f1f3f6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+}
+
+.mobile-action-btn:active,
+.mobile-action-btn.active {
+  background: rgba(220, 38, 38, 0.6);
+  border-color: #ef4444;
+  transform: scale(0.92);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.6);
+}
+
+.mobile-action-btn.inspect-pulse {
+  border-color: #ef4444;
+  color: #ffffff;
+  background: rgba(220, 38, 38, 0.35);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.75);
+  animation: luto-pulse 1.2s infinite;
+}
+
+.mobile-look-zone {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  bottom: 110px;
+  width: 50%;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+/* ==========================================================================
+   LUTO // COMPREHENSIVE RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+/* Tablet Breakpoint (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .title-screen-container {
+    padding: 2rem 2.5rem;
+    overflow-y: auto;
+  }
+
+  .title-bottom-ticker {
+    padding-right: 2rem;
+  }
+
+  .chapter-card-slide {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 2.25rem;
+  }
+
+  .chapter-right-meta {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-left: 0;
+    padding-top: 1.5rem;
+  }
+
+  .carousel-page-container {
+    padding: 1.75rem 2rem;
+    overflow-y: auto;
+  }
+
+  .lore-dossier-modal,
+  .luto-dossier-modal,
+  .horror-scare-card {
+    max-width: 92vw;
+    max-height: 88vh;
+  }
+
+  .gate-sadako-anchor {
+    right: 12%;
+    bottom: 16%;
+    transform: scale(0.85);
+    transform-origin: bottom right;
+  }
+}
+
+/* Mobile Breakpoint (max-width: 768px) */
+@media (max-width: 768px) {
+  .title-screen-container {
+    padding: 1.25rem 1rem;
+    height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .title-header-bar {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    width: 100%;
+  }
+
+  .title-top-badge {
+    font-size: 8.5px;
+    letter-spacing: 0.22em;
+  }
+
+  .title-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .title-hero-content {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    max-width: 100%;
+  }
+
+  .title-main-heading {
+    font-size: clamp(2.2rem, 11vw, 3.2rem);
+    letter-spacing: 0.16em;
+  }
+
+  .title-lore-prologue {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+  }
+
+  .title-sub-heading {
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  .title-menu-group {
+    max-width: 100%;
+    margin-top: 1.5rem;
+  }
+
+  .title-menu-btn {
+    padding: 0.75rem 1rem;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+
+  .title-bottom-ticker {
+    padding-right: 0;
+    padding-top: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 9px;
+  }
+
+  .whisper-warning-toast {
+    top: 5.5rem;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    padding: 4px 12px;
+    max-width: 90vw;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .carousel-page-container {
+    padding: 1.25rem 0.75rem;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .carousel-top-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .chapter-card-slide {
+    padding: 1.25rem;
+    gap: 1.25rem;
+    border-radius: 6px;
+  }
+
+  .chapter-title {
+    font-size: 1.5rem;
+    margin: 0.25rem 0 0.75rem;
+  }
+
+  .chapter-synopsis {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .chapter-quote-box {
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+  }
+
+  .luto-hud-overlay {
+    padding: 1rem 0.75rem;
+  }
+
+  .luto-ekg-card {
+    padding: 5px 10px;
+    bottom: 0.85rem;
+    left: 0.85rem;
+    gap: 0.45rem;
+  }
+
+  .ekg-waveform-svg {
+    width: 44px;
+    height: 18px;
+  }
+
+  .ekg-bpm-label {
+    font-size: 10px;
+  }
+
+  .luto-inventory-dock {
+    bottom: 0.85rem;
+    right: 0.85rem;
+    gap: 0.35rem;
+    max-width: 48vw;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .luto-inventory-pill {
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+
+  .gate-sadako-anchor {
+    right: 4%;
+    bottom: 8%;
+    transform: scale(0.62);
+    transform-origin: bottom right;
+  }
+
+  .horror-prologue-screen {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .lore-dossier-modal,
+  .luto-dossier-modal {
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 90vh;
+    padding: 1.25rem 1rem;
+  }
+
+  .dossier-title {
+    font-size: 1.15rem;
+  }
+
+  .dossier-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .horror-scare-card {
+    max-width: 95vw;
+    max-height: 92vh;
+  }
+
+  .profile-identity-banner {
+    padding: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .profile-meta-tags {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .profile-tabs-bar {
+    padding: 0.5rem 1rem 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .profile-tab-btn {
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem;
+    font-size: 9px;
+  }
+
+  .auth-modal-card {
+    max-width: 94vw;
+  }
+
+  .auth-header {
+    padding: 1rem;
+  }
+
+  .auth-form {
+    padding: 1rem;
+  }
+}
+
+/* Small Phones (max-width: 480px) */
+@media (max-width: 480px) {
+  .title-top-badge {
+    font-size: 7.5px;
+    letter-spacing: 0.16em;
+  }
+
+  .title-main-heading {
+    font-size: 2.1rem;
+  }
+
+  .carousel-nav-link {
+    padding: 5px 8px;
+    font-size: 9.5px;
+    gap: 0.35rem;
+  }
+
+  .chapter-meta-row {
+    font-size: 10px;
+    padding: 0.5rem 0;
+  }
+
+  .chapter-action-btn {
+    padding: 0.75rem 1rem;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hidden-xs {
+    display: none !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .visible-xs {
+    display: none !important;
+  }
+}
+
+/* Leaderboard Modal Responsive */
+.leaderboard-modal-header {
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.leaderboard-podium-grid {
+  padding: 1.25rem 1.75rem 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.leaderboard-filter-bar {
+  padding: 0.85rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.leaderboard-table-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.5rem 1.75rem;
+  max-height: 420px;
+}
+
+.leaderboard-table {
+  width: 100%;
+  min-width: 540px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .leaderboard-modal-header {
+    padding: 0.85rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .leaderboard-podium-grid {
+    padding: 0.75rem 1rem 0.25rem;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+  .leaderboard-filter-bar {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+  .leaderboard-table-container {
+    padding: 0.5rem 0.75rem;
+  }
 }
 
 

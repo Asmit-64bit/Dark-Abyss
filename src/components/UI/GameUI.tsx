@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { useAuthStore } from '../../store/authStore';
 import {
   Sparkles,
   RefreshCw,
@@ -29,6 +30,7 @@ import {
 import { StudyNotesModal } from './StudyNotesModal';
 import { DocumentationViewer } from './DocumentationViewer';
 import { LeaderboardModal } from './LeaderboardModal';
+import { MobileTouchControls } from './MobileTouchControls';
 import {
   playSolveChime,
   playErrorGlitch,
@@ -460,6 +462,10 @@ export const GameUI: React.FC = () => {
         <button
           onClick={() => {
             completeLevel(currentLevel);
+            const authState = useAuthStore.getState();
+            if (authState.user) {
+              void authState.syncProfileToCloud();
+            }
             setAppState('LEVEL_SELECT');
           }}
           className="chapter-action-btn"
@@ -499,8 +505,8 @@ export const GameUI: React.FC = () => {
       )}
 
       {/* Top Bar - Minimalist Chronometer & Flashlight */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', zIndex: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', pointerEvents: 'auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', zIndex: 10, flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', pointerEvents: 'auto' }}>
           <button
             type="button"
             onClick={() => setAppState('LANDING')}
@@ -521,21 +527,21 @@ export const GameUI: React.FC = () => {
           >
             ← BACK
           </button>
-          <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#8b929e', textTransform: 'uppercase' }}>
-            CHAPTER 0{currentLevel} // LIMINAL LOCUS
+          <div style={{ fontSize: '11px', letterSpacing: '0.18em', color: '#8b929e', textTransform: 'uppercase' }}>
+            CHAPTER 0{currentLevel}<span className="hidden-xs"> // LIMINAL LOCUS</span>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', pointerEvents: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', pointerEvents: 'auto' }}>
           {/* Chronometer */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '5px',
               background: 'rgba(14, 16, 21, 0.8)',
               border: '1px solid var(--luto-border)',
-              padding: '6px 12px',
+              padding: '6px 10px',
               borderRadius: '4px',
               fontSize: '11px',
               color: '#cbd5e1',
@@ -552,15 +558,16 @@ export const GameUI: React.FC = () => {
             onClick={toggleFlashlight}
             className="carousel-nav-link"
             style={{
-              padding: '6px 12px',
-              fontSize: '10.5px',
-              letterSpacing: '0.12em',
+              padding: '6px 10px',
+              fontSize: '10px',
+              letterSpacing: '0.1em',
               color: flashlightOn ? '#f4f5f8' : '#8b929e',
             }}
             title="Toggle Light [ F ]"
           >
             <Flashlight size={12} color={flashlightOn ? '#f4f5f8' : '#8b929e'} />
-            <span>{flashlightOn ? 'LIGHT [ON]' : 'LIGHT [OFF]'}</span>
+            <span className="hidden-xs">{flashlightOn ? 'LIGHT [ON]' : 'LIGHT [OFF]'}</span>
+            <span className="visible-xs">{flashlightOn ? 'ON' : 'OFF'}</span>
           </button>
         </div>
       </div>
@@ -634,6 +641,9 @@ export const GameUI: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Diegetic Mobile Touch D-Pad & Camera Controls */}
+      <MobileTouchControls />
 
       {/* Exit Confirmation Modal */}
       {showExitModal && (

@@ -162,13 +162,13 @@ export const LandingPage: React.FC = () => {
       {/* Main Title Interface */}
       <div className="title-screen-container">
         {/* Top Status Tag & Navigation */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="title-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div className="title-top-badge">
             <span className="luto-pulse-dot" />
             <span>CASE FILE // INCIDENT_04-A // SADAKO CURSE</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="title-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               type="button"
               onClick={() => handleButtonClick(() => setShowPrologue(true))}
@@ -186,7 +186,7 @@ export const LandingPage: React.FC = () => {
               title="Read Facility Case Archive"
             >
               <BookOpen size={13} />
-              <span>FACILITY ARCHIVES</span>
+              <span><span className="hidden-xs">FACILITY </span>ARCHIVES</span>
             </button>
 
             <button
@@ -197,7 +197,7 @@ export const LandingPage: React.FC = () => {
               title="Global Operators Leaderboard"
             >
               <Trophy size={13} color="#facc15" />
-              <span>LEADERBOARD {score > 0 ? `(${score.toLocaleString()} PTS)` : ''}</span>
+              <span><span className="hidden-xs">LEADERBOARD</span><span className="visible-xs">RANKS</span>{score > 0 ? <span className="hidden-xs"> ({score.toLocaleString()} PTS)</span> : ''}</span>
             </button>
 
             <button
@@ -207,7 +207,7 @@ export const LandingPage: React.FC = () => {
               title="View Records & Telemetry"
             >
               <Activity size={13} />
-              <span>RECORDS ({achievements.length}/{ACHIEVEMENTS.length})</span>
+              <span>RECORDS<span className="hidden-xs"> ({achievements.length}/{ACHIEVEMENTS.length})</span></span>
             </button>
 
             <button

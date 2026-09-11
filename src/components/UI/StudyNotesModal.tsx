@@ -38,7 +38,7 @@ export const StudyNotesModal: React.FC = () => {
 
   return (
     <div className="luto-dossier-overlay" onClick={() => setBookModalOpen(false)}>
-      <div className="luto-dossier-modal" style={{ width: '620px' }} onClick={(e) => e.stopPropagation()}>
+      <div className="luto-dossier-modal" style={{ width: '620px', maxWidth: '95vw' }} onClick={(e) => e.stopPropagation()}>
         <div className="dossier-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f4f5f8' }}>
             <BookOpen size={15} />

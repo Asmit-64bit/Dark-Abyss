@@ -5,6 +5,7 @@ import { PointerLockControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGameStore } from '../store/gameStore';
 import { playFootstep } from '../utils/soundEffects';
+import { mobileInput, consumeMobileLookDelta, isTouchCapableDevice } from '../utils/mobileInput';
 
 const SPEED = 5;
 const direction = new THREE.Vector3();
@@ -117,11 +118,26 @@ export const Player = () => {
       return;
     }
 
-    // Movement
-    frontVector.set(0, 0, Number(keys.current.backward) - Number(keys.current.forward));
-    sideVector.set(Number(keys.current.left) - Number(keys.current.right), 0, 0);
+    // Mobile Touch Camera Look Rotation
+    const { dx: lookDx, dy: lookDy } = consumeMobileLookDelta();
+    if (lookDx !== 0 || lookDy !== 0) {
+      const sensitivity = 0.0035;
+      const curRot = camera.rotation;
+      const targetPitch = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, curRot.x - lookDy * sensitivity));
+      const targetYaw = curRot.y - lookDx * sensitivity;
+      camera.rotation.set(targetPitch, targetYaw, curRot.z, 'YXZ');
+    }
 
-    const isMoving = keys.current.forward || keys.current.backward || keys.current.left || keys.current.right;
+    // Movement (WASD Keyboard + Mobile Touch D-Pad)
+    const isFwd = keys.current.forward || mobileInput.forward;
+    const isBack = keys.current.backward || mobileInput.backward;
+    const isLft = keys.current.left || mobileInput.left;
+    const isRgt = keys.current.right || mobileInput.right;
+
+    frontVector.set(0, 0, Number(isBack) - Number(isFwd));
+    sideVector.set(Number(isLft) - Number(isRgt), 0, 0);
+
+    const isMoving = isFwd || isBack || isLft || isRgt;
 
     direction
       .subVectors(frontVector, sideVector)
@@ -174,9 +190,10 @@ export const Player = () => {
           recordInteraction();
         }
 
-        if (keys.current.interact) {
+        if (keys.current.interact || mobileInput.interact) {
           interactData.onInteract();
           keys.current.interact = false;
+          mobileInput.interact = false;
         }
         break;
       }
@@ -200,9 +217,11 @@ export const Player = () => {
     }
   });
 
+  const isMobile = typeof window !== 'undefined' && isTouchCapableDevice() && window.innerWidth <= 1024;
+
   return (
     <>
-      <PointerLockControls />
+      {!isMobile && <PointerLockControls />}
 
       {/* Tactical Player Flashlight */}
       <primitive object={target} />
